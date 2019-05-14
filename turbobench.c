@@ -237,7 +237,7 @@ struct plugg plugg[] =
   { "ECODER",    "turbohf/turboanx/turborc/turborc_o1/turboac_byte/arith_static/rans_static16/rans_static16o1/subotin/fasthf/fastac/zlibh/fse/fsehuf/memcpy/", "Entropy coder" },
 };
 #define PLUGGSIZE (sizeof(plugg)/sizeof(plugg[0]))
-#define INVLEV -999
+#define INVLEV -9999
 
 void plugsprt(void) {
   struct plugs *gs;
@@ -388,7 +388,7 @@ int plugreg(struct plug *plug, char *cmd, int k, int bsize, int bsizex) {
       int found = 0;
       struct plugs *gs,*gfs=NULL;  
       if(!*name) 
-        break;
+        break;                              
       for(gs = plugs; gs->id >= 0; gs++)
         if(gs->codec && !strcasecmp(gs->s, name) ) { 
           char s[33],*q; 
