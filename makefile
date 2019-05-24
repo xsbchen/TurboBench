@@ -9,8 +9,12 @@
 # GPL: "make GPL=1" to include GPL libraries
 CC ?= gcc
 CXX ?= g++
+
 #CC=clang
 #CXX=clang++
+
+#CC=icc
+#CXX=icc
 #----- Compile for 'American Fuzzy Lop (http://lcamtuf.coredump.cx/afl/) 
 # add '-static' to LDFLAG
 # Run turbobench w/o output : afl-fuzz -i testcase_dir -o finding_dir -- ./turbobench -elzturbo,12 -v0 -gg -k0
@@ -235,9 +239,10 @@ else
 OB+=$(ZLIB_DIR)/libz.a
 endif
 
+ifneq ($(CC), icc)
 OB+=libdeflate/lib/adler32.o libdeflate/lib/aligned_malloc.o libdeflate/lib/crc32.o libdeflate/lib/arm/cpu_features.o libdeflate/lib/x86/cpu_features.o \
     libdeflate/lib/deflate_compress.o libdeflate/lib/deflate_decompress.o libdeflate/lib/gzip_compress.o libdeflate/lib/gzip_decompress.o libdeflate/lib/zlib_compress.o libdeflate/lib/zlib_decompress.o 
-
+endif
 OB+=libslz/src/slz.o 
 
 endif
@@ -468,7 +473,11 @@ OB+=ppmdec/ppmdec.o
 #OB+=ans_nania/narans.o 
 OB+=fpaq0p/fpaq0p_sh.o 
 #OB+=marlin/src/compress.o marlin/src/configuration.o marlin/src/decompress.o marlin/src/dictionary.o marlin/src/marlin.o
+
+ifneq ($(CC), icc)
 OB+=vecrc/vector_rc.o
+endif
+
 OB+=FPC/fpc.o
 #ifeq ($(NCOMP2), 0)
 OB+=rans_static/rANS_static4x8.o rans_static/rANS_static4x16.o rans_static/rANS_static.o rans_static/arith_static.o
