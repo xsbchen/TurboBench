@@ -125,9 +125,14 @@ enum {
 
 #define C_LIBBSC     COMP2    
  P_LIBBSC,   
- P_LIBBSCC,   
+ P_LIBBSCC,
+#ifdef __INTEL_COMPILER
+#define C_LIBDEFLATE 0	      // compling errors w. icc
+#else
 #define C_LIBDEFLATE COMP1	
+#endif
  P_LIBDEFLATE,
+
 #define C_LIBLZF     COMP2 
  P_LIBLZF,  
 #define C_LIBLZG	COMP2	  
@@ -297,7 +302,11 @@ enum {
  P_NIBRANS,      
 #define C_PPMDEC	ECODER  
  P_PPMDEC,    
+#ifdef __INTEL_COMPILER     
+#define C_SHRC		0	      // compling errors w. icc
+#else
 #define C_SHRC		ECODER 
+#endif
  P_SHRC,
  P_SHRCV,
 #define C_SUBOTIN   ECODER    
