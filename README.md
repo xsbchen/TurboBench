@@ -130,9 +130,10 @@ Compressors with versions 16.08.2016 <br>
 ### Environment:
 ###### OS/Compiler (32 + 64 bits):
 - Linux: GNU GCC (>=4.6) 
-- clang (>=3.2) 
+- clang (>=3.2)
+- intel c/c++ (>=18.0)
 - Windows: [MinGW-w64](https://sourceforge.net/projects/mingw-w64/)
-- Windows: Visual Studio 2015
+- Windows: Visual Studio >=2015
 - ARM 64 bits/ gcc 
 
 ### Plugins:
