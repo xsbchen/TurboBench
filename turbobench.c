@@ -1009,6 +1009,10 @@ int becomp(unsigned char *_in, unsigned _inlen, unsigned char *_out, size_t outs
     }
   }
   TMEND(_inlen);	
+    #ifdef LZTURBO
+  extern void statprint(); 
+  statprint();  
+    #endif
   return op - _out;;
 }
 
@@ -1222,16 +1226,6 @@ void printfile(char *finame, int xstdout, int fmt, char *rem) {
   #ifdef __MINGW32__
 extern int _CRT_glob = 1;
   #endif
-unsigned xbits[256] = {0};
-#define XSTPRT { int i; for(i = 0; i < 256; i++) if(xbits[i]) printf("%d:%d,", i, xbits[i]); }
-#define XSTPRT if(xbits[1]) printf("%d:%d", xbits[0], xbits[0]/xbits[1])
-//#define XSTDEF 
-//#define XSTINC(_x_) 
-//#define XSTPRT 
-
-//XSTDEF;
-
-void ansprt(void) { XSTPRT; }
 
 int main(int argc, char* argv[]) { 
   int xstdout=-1,xstdin=-1;
@@ -1430,7 +1424,6 @@ int main(int argc, char* argv[]) {
     if((p = strrchr(finame, '\\')) || (p = strrchr(finame, '/'))) 
       finame = p+1;
   }
-  ansprt();
   if(!totinlen) exit(0);
   sprintf(s, "%s.tbb", finame);
   if(merge /*|| tm_rep <= 1 && tm_rep2 <= 1*/) {
@@ -1480,4 +1473,9 @@ int main(int argc, char* argv[]) {
 	fclose(fo);
     printfile(s, 0, FMT_TEXT, rem);
   }
+    #ifdef _WIN32          // Finish! 
+  Beep( 440, 100 );
+    #else
+  putchar('\a');
+    #endif
 }
