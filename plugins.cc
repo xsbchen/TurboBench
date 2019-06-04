@@ -219,6 +219,14 @@ enum {
  P_YAPPY,
 #define C_ZLIB		COMP1	
  P_ZLIB, 
+#ifdef ZLIB_ZNG
+#define C_ZLIBNG	COMP1
+#define C_ZLIB      0      // link conflict with zlib.a
+#define C_LIBSLZ    0      // disable
+#else
+#define C_ZLIBNG	0	
+#endif
+ P_ZLIBNG, 
 #define C_ZLING	    0 //COMP2
  P_ZLING,  
 #define C_ZOPFLI	COMP2	
@@ -646,10 +654,10 @@ class Out: public libzpaq::Writer {
 #include "yappy/yappy.hpp"
   #endif
 
-  #if C_ZLIB
+  #if C_ZLIB || C_LIBSLZ
      #if C_ZLIBLIB
 #include <zlib.h>
-     #elif defined(ZLIB_NG)
+     #elif defined(ZLIB_NG)          // zlib-ng.a compatible mode : "./configure --zlib-compat" (see zlib-ng/INSTALL)
 #include "zlib/zlib.h"
      #elif defined(ZLIB_INTEL)
 #include "zlib_intel/zlib.h"
@@ -657,7 +665,7 @@ class Out: public libzpaq::Writer {
 #include "zlib/zlib.h"
      #endif
   #endif
-  
+ 
   #if C_ZLING
 #include "libzling/src/libzling.h"
 #include "libzling_/libzling_utils_mem.h"
@@ -724,6 +732,14 @@ struct snappy_env env;
   #if C_SMALLZ4
 #include "smallz4/smallz4.h"
 #include "smallz4/smallz4cat.c"
+  #endif
+
+  #if C_ZLIBNG
+//#include "zlib-ng/zlib-ng.h"     // compile conflict with zlib.h 
+#include "zlib-ng/zconf-ng.h"
+ZEXTERN int ZEXPORT zng_compress2(unsigned char *dest, size_t *destLen, const unsigned char *source,
+                              size_t sourceLen, int level);
+ZEXTERN int ZEXPORT zng_uncompress(unsigned char *dest, size_t *destLen, const unsigned char *source, size_t sourceLen);
   #endif
 
   #if C_ZOPFLI
@@ -955,6 +971,7 @@ struct plugs plugs[] = {
   { P_YALZ77, 	"yalz77", 			C_YALZ77, 	"15-09",	"Yalz77",				"Public domain",	"https://github.com/ivan-tkatchev/yalz77",												"1,6,12" },
   { P_YAPPY, 	"yappy",			C_YAPPY, 	"2011",		"Yappy",				"",					"" ,																					"" },//crash windows
   { P_ZLIB, 	"zlib", 			C_ZLIB, 	"1.2.9",	"zlib",					"zlib license",		"http://zlib.net\thttps://github.com/madler/zlib", 										"1,2,3,4,5,6,7,8,9" },
+  { P_ZLIBNG, 	"zlib_ng", 			C_ZLIBNG, 	"",	"zlib-ng",					    "zlib license",		"https://github.com/zlib-ng/zlib-ng", 										"1,2,3,4,5,6,7,8,9" },
   { P_ZLING, 	"zling", 	   		C_ZLING, 	"16-01",	"Libzling",				"BSD license",		"https://github.com/richox/libzling",													"0,1,2,3,4" }, 
   { P_ZOPFLI, 	"zopfli",			C_ZOPFLI, 	"16-04",	"Zopfli",				"Apache license",	"https://code.google.com/p/zopfli",														""}, 
   { P_ZSTD, 	"zstd", 			C_ZSTD,		"1.0.0",	"ZSTD",					"BSD license+Patents","https://github.com/facebook/zstd", 													"1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-20,-21,-22/d#" },
@@ -1561,6 +1578,10 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
       #if C_ZLIB
     case P_ZLIB:     { uLongf outlen = outsize; int rc = compress2(out, &outlen, in, inlen, lev); if(rc != Z_OK) printf("zlib compress2 rc=%d\n", rc);	return outlen; }
       #endif
+
+      #if C_ZLIBNG
+    case P_ZLIBNG:   { uLongf outlen = outsize; int rc = zng_compress2(out, &outlen, in, inlen, lev); if(rc) printf("zlib compress2 rc=%d\n", rc);	return outlen; }
+      #endif
 	  
       #if C_ZLING
     case P_ZLING:    return zling_compress(lev, in, inlen, out, outsize);
@@ -2109,6 +2130,10 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
       #if C_ZLIB
     //case P_IGZIP: case P_LIBDEFLATE:
     case P_ZLIB: case P_ZOPFLI: { uLongf outsize = outlen; int rc = uncompress(out, &outsize, in, inlen); } break;
+      #endif
+
+      #if C_ZLIBNG
+    case P_ZLIBNG: { uLongf outsize = outlen; int rc = zng_uncompress(out, &outsize, in, inlen); } break;
       #endif
 
       #if C_ZSTD
