@@ -174,7 +174,7 @@ enum {
 #ifdef MINIZ
 #define C_MINIZ   	COMP2 //generate the missing "miniz_export.h" file with "cd miniz" "cmake ." or or copy it with "cp miniz_/*.h miniz", then compile turbobench with "make MINIZ=1"
 #else
-#define C_MINIZ 
+#define C_MINIZ     0 
 #endif
 
  P_MINIZ,
