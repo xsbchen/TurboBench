@@ -197,10 +197,25 @@ OB+=brotli/c/common/dictionary.o brotli/c/common/transform.o brotli/c/enc/bit_co
 	brotli/c/dec/huffman.o brotli/c/dec/state.o brotli/c/enc/utf8_util.o brotli/c/enc/backward_references_hq.o brotli/c/enc/dictionary_hash.o
 
 ifeq ($(ZLIB_NG), 1)
-#1 create libz.a: "cd zlib-ng" , "./configure --zlib-compat"
+#1 create a zlib compatible libz.a: "cd zlib-ng" , "./configure --zlib-compat" (see zlib-ng/INSTALL )
 #2 compile with: "make HAVE_ZLIB=1 ZLIB_NG=1"
 DEFS+=-DZLIB_NG
 endif
+
+ifeq ($(ZLIB_ZNG), 1)
+#1 create "libz-ng.a"
+#  cd zlib-ng
+#  ./configure
+#  make
+#  cd ..
+#2 copy "zlib-ng/libz-ng.a" to directory "zlib-ng_" 
+#  cp zlib-ng/libz-ng.a ../libz-ng_
+#3 compile turbobench with: 
+#  make ZLIB_ZNG=1
+DEFS+=-DZLIB_ZNG
+OB+=zlib-ng_/libz-ng.a
+endif
+
 
 ifeq ($(ZLIB_DIR),)
 
@@ -209,14 +224,16 @@ ifeq ($(ZLIB_NG), 1)
 #1 create libz.a: "cd zlib-ng" , "./configure --zlib_compat"
 #2 compile with: "make HAVE_ZLIB=1 ZLIB_NG=1"
 DEFS+=-DZLIB_NG
-OB+=zlib-ng/libz.a
+OB+=zlib-ng_/libz.a
 else
+
 ifeq ($(STATIC),1)
 OB+=/usr/lib/x86_64-linux-gnu/libz.a
 else
 OB+=-lz
 endif
 endif
+
 else
 ifeq ($(ZLIB_NG), 1)
 ZD=zlib-ng/
@@ -231,7 +248,10 @@ ZD=zlib/
 endif
 endif
 
+ifeq ($(ZLIB_ZNG), 1)
+else
 OB+=$(ZD)adler32.o $(ZD)crc32.o $(ZD)compress.o $(ZD)deflate.o $(ZD)infback.o $(ZD)inffast.o $(ZD)inflate.o $(ZD)inftrees.o $(ZD)trees.o $(ZD)uncompr.o $(ZD)zutil.o
+endif
 endif
 
 else
