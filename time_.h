@@ -170,6 +170,7 @@ static unsigned argtoi(char *s, unsigned def) {
   char *p; 
   unsigned n = strtol(s, &p, 10),f = 1;
   switch(*p) {
+    case 'B': f = 1;  break;
     case 'K': f = KB; break;
     case 'M': f = MB; break;
     case 'G': f = GB; break;
@@ -185,6 +186,7 @@ static uint64_t argtol(char *s) {
   char *p;
   uint64_t n = strtol(s, &p, 10),f=1;
   switch(*p) {
+    case 'B': f = 1; break;
     case 'K': f = KB; break;
     case 'M': f = MB; break;
     case 'G': f = GB; break;
