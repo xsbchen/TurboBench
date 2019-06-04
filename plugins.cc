@@ -171,7 +171,12 @@ enum {
  P_LZSSE2,
  P_LZSSE4,
  P_LZSSE8,
-#define C_MINIZ   	COMP2
+#ifdef MINIZ
+#define C_MINIZ   	COMP2 //generate the "miniz_export.h" file: "cd miniz" "cmake .", the compile turbobench with "make MINIZ=1"
+#else
+#define C_MINIZ 
+#endif
+
  P_MINIZ,
 #define C_MSCOMPRESS	GPL  
  P_MSCOMPRESS, 
