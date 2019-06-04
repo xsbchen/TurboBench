@@ -157,10 +157,13 @@ ifeq ($(OPENMP),1)
 DEFS+=-fopenmp -DLIBBSC_OPENMP_SUPPORT
 LDFLAGS+=-fopenmp 
 endif
- 
+
+ifeq ($(MINIZ), 1)
+DEFS+=MINIZ
+endif
 #------------- 
 # 
-CFLAGS+=$(DDEBUG) -w -std=gnu99 -fpermissive -Wall -Izstd/lib -Izstd/lib/common $(DEFS) -Ilz4/lib -Ilizard/lib -Ibrotli/c/include -Ibrotli/c/enc -Ilibdeflate -Ilibdeflate/common -Ibrieflz/include 
+CFLAGS+=$(DDEBUG) -w -std=gnu99 -fpermissive -Wall -Izstd/lib -Izstd/lib/common $(DEFS) -Ilz4/lib -Ilizard/lib -Ibrotli/c/include -Ibrotli/c/enc -Ilibdeflate -Ilibdeflate/common -Ibrieflz/include
 #CFLAGS+=-Ifastbase64/include -DINLINE=inline -Ilz4ultra/src/libdivsufsort/include -Ilz4ultra/src
 CXXFLAGS+=$(DDEBUG) -w -fpermissive -Wall -fno-rtti -Ilzham_codec_devel/include -Ilzham_codec_devel/lzhamcomp -Ilzham_codec_devel/lzhamdecomp -D"UINT64_MAX=-1ull" -Ibrotli/c/include -Ibrotli/c/enc -ICSC/src/libcsc -D_7Z_TYPES_ -DLIBBSC_SORT_TRANSFORM_SUPPORT $(DEFS)
 #CXXFLAGS+=-Imarlin/inc -Ilz4ultra/src/libdivsufsort/include 
@@ -363,7 +366,10 @@ ifeq ($(NSIMD),0)
 OB+=LZSSE/lzsse2/lzsse2.o LZSSE/lzsse4/lzsse4.o LZSSE/lzsse8/lzsse8.o 
 OB+=nakamichi/Nakamichi_Washigan.o
 endif
+
+ifeq ($(MINIZ), 1)
 OB+=miniz/miniz.o miniz/miniz_tdef.o miniz/miniz_tinfl.o
+endif
 
 OB+=pithy/pithy.o
 OB+=shoco/shoco.o
