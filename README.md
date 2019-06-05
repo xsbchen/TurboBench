@@ -183,8 +183,8 @@ Compressors with versions 16.08.2016 <br>
  - [wfLZ v15-04](https://github.com/ShaneWF/wflz) 
  - [yalz77 v15-09](https://github.com/ivan-tkatchev/yalz77) 
  - [yappy v2011]() 
- - [zlib v1.2.8 2017.01](http://zlib.net)
- - [zlib-ng v1.2.8](https://github.com/Dead2/zlib-ng)
+ - [zlib v1.2.11 v2019](http://zlib.net)
+ - [zlib-ng v2019-06](https://github.com/Dead2/zlib-ng)
  - [zlib cloudflare](https://github.com/cloudflare/zlib)
  - [libzling v2017-01](https://github.com/richox/libzling) 
  - [xpack](https://github.com/ebiggers/xpack) 
@@ -242,5 +242,5 @@ Compressors with versions 16.08.2016 <br>
  - [bwt:libdivsufsort](https://github.com/y-256/libdivsufsort)
  - [st: bsc schindler transform](https://github.com/IlyaGrebnov/libbsc)
 
-Last update: 15 Apr 2019
+Last update: 05 Jun 2019
 
