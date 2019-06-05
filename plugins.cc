@@ -221,8 +221,8 @@ enum {
  P_ZLIB, 
 #ifdef ZLIB_ZNG
 #define C_ZLIBNG	COMP1
-#define C_ZLIB      0      // link conflict with zlib.a
-#define C_LIBSLZ    0      // disable
+//#define C_ZLIB      0      // link conflict with zlib.a
+//#define C_LIBSLZ    0      // disable
 #else
 #define C_ZLIBNG	0	
 #endif
@@ -737,6 +737,7 @@ struct snappy_env env;
   #if C_ZLIBNG
 //#include "zlib-ng/zlib-ng.h"     // compile conflict with zlib.h 
 #include "zlib-ng/zconf-ng.h"
+ZEXTERN const char * ZEXPORT zlibng_version(void);
 ZEXTERN int ZEXPORT zng_compress2(unsigned char *dest, size_t *destLen, const unsigned char *source,
                               size_t sourceLen, int level);
 ZEXTERN int ZEXPORT zng_uncompress(unsigned char *dest, size_t *destLen, const unsigned char *source, size_t sourceLen);
@@ -2127,12 +2128,16 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
     } break;
       #endif  	 
 
-      #if C_ZLIB
+      #if C_ZLIB  
     //case P_IGZIP: case P_LIBDEFLATE:
-    case P_ZLIB: case P_ZOPFLI: { uLongf outsize = outlen; int rc = uncompress(out, &outsize, in, inlen); } break;
+      #if C_ZLIBNG == 0
+    case P_ZOPFLI:
+      #endif
+    case P_ZLIB: { uLongf outsize = outlen; int rc = uncompress(out, &outsize, in, inlen); } break;
       #endif
 
       #if C_ZLIBNG
+    case P_ZOPFLI:
     case P_ZLIBNG: { uLongf outsize = outlen; int rc = zng_uncompress(out, &outsize, in, inlen); } break;
       #endif
 
@@ -2316,32 +2321,40 @@ char *codver(int codec, char *v, char *s) {
     return BLOSC_VERSION_STRING;
       #endif 
 	  #if C_BRIEFLZ
-    case P_BRIEFLZ: sprintf(s,"%d.%d.%d", BLZ_VER_MAJOR, BLZ_VER_MINOR, BLZ_VER_PATCH); return s;
+    case P_BRIEFLZ: sprintf(s,"%d.%d.%d", BLZ_VER_MAJOR, BLZ_VER_MINOR, BLZ_VER_PATCH); break;
 	  #endif
 
 	  #if C_LZ4
-    case P_LZ4:     sprintf(s,"%d.%d.%d", LZ4_VERSION_MAJOR, LZ4_VERSION_MINOR, LZ4_VERSION_RELEASE); return s;
+    case P_LZ4:     sprintf(s,"%d.%d.%d", LZ4_VERSION_MAJOR, LZ4_VERSION_MINOR, LZ4_VERSION_RELEASE); break;
 	  #endif
 
 	  #if C_LIZARD
-    case P_LIZARD:     sprintf(s,"%d.%d.%d", LIZARD_VERSION_MAJOR, LIZARD_VERSION_MINOR, LIZARD_VERSION_RELEASE); return s;
+    case P_LIZARD:     sprintf(s,"%d.%d.%d", LIZARD_VERSION_MAJOR, LIZARD_VERSION_MINOR, LIZARD_VERSION_RELEASE); break;
 	  #endif
 
 	  #if C_ZSTD
-    case P_ZSTD:    sprintf(s,"%d.%d.%d", ZSTD_VERSION_MAJOR, ZSTD_VERSION_MINOR, ZSTD_VERSION_RELEASE); return s;
+    case P_ZSTD:    sprintf(s,"%d.%d.%d", ZSTD_VERSION_MAJOR, ZSTD_VERSION_MINOR, ZSTD_VERSION_RELEASE); break;
       #endif
 
 	  #if C_DENSITY
-    case P_DENSITY: sprintf(s,"%d.%d.%d", density_version_major(), density_version_minor(), density_version_revision()); return s;
+    case P_DENSITY: sprintf(s,"%d.%d.%d", density_version_major(), density_version_minor(), density_version_revision()); break;
 	  #endif
 
       #if C_HEATSHRINK
-    case P_HEATSHRINK: sprintf(s,"%d.%d.%d", HEATSHRINK_VERSION_MAJOR, HEATSHRINK_VERSION_MINOR, HEATSHRINK_VERSION_PATCH); return s;
+    case P_HEATSHRINK: sprintf(s,"%d.%d.%d", HEATSHRINK_VERSION_MAJOR, HEATSHRINK_VERSION_MINOR, HEATSHRINK_VERSION_PATCH); break;
       #endif
 
 	  #if C_SNAPPY
-    case P_SNAPPY:  sprintf(s,"%d.%d.%d", SNAPPY_MAJOR, SNAPPY_MINOR, SNAPPY_PATCHLEVEL); return s;
+    case P_SNAPPY:  sprintf(s,"%d.%d.%d", SNAPPY_MAJOR, SNAPPY_MINOR, SNAPPY_PATCHLEVEL); break;
 	  #endif
+      #if C_ZLIB
+    case P_ZLIB:
+      sprintf(s,zlib_version); break;
+      #endif
+      #if C_ZLIBNG
+    case P_ZLIBNG:
+      sprintf(s,zlibng_version()); break;
+      #endif
 	default:        strcpy(s,v);
   }
   return s;
