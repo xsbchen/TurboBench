@@ -248,10 +248,10 @@ ZD=zlib/
 endif
 endif
 
-ifeq ($(ZLIB_ZNG), 1)
-else
+#ifeq ($(ZLIB_ZNG), 1)
+#else
 OB+=$(ZD)adler32.o $(ZD)crc32.o $(ZD)compress.o $(ZD)deflate.o $(ZD)infback.o $(ZD)inffast.o $(ZD)inflate.o $(ZD)inftrees.o $(ZD)trees.o $(ZD)uncompr.o $(ZD)zutil.o
-endif
+#endif
 endif
 
 else
