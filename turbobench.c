@@ -623,14 +623,18 @@ void plugprt(struct plug *plug, long long totinlen, char *finame, int fmt, doubl
 }
 
 static int blknum, speedup;
-enum { SP_SPEEDUPC=1, SP_SPEEDUPD, SP_TRANSFERC, SP_TRANSFERD };
+enum { SP_SPEEDUPC=1, SP_SPEEDUPD, SP_TRANSFERC, SP_TRANSFERD, SP_SPEEDUP, SP_TRANSFER };
+#define SP_ISFACTOR(x) (x==SP_SPEEDUPC || x == SP_SPEEDUPD || x == SP_SPEEDUP)
+#define SP_TYPE(x)     (x<SP_SPEEDUP)?(x&1):2        // 0:Decomp 1:Comp 2:Comp+Decomp
+
+char *plugspeedup(int speedup) { return (speedup==SP_SPEEDUP || speedup==SP_TRANSFER)?"Compression+Decompression":((speedup&1)?"Compression":"Decompression"); }
 
 void plugprtph(FILE *f, int fmt) {
-  int i;
+  int i; char *s = plugspeedup(speedup);
 
   switch(fmt) {
     case FMT_HTML: 
-      fprintf(f,"<p><h3>TurboBench: Speedup %s sheet</h3><table id='myTable2' class='tablesorter' style=\"width:80%%\"><thead><tr><th>Name</th>", (speedup&1)?"compression":"decompression");
+      fprintf(f,"<p><h3>TurboBench: Speedup %s sheet</h3><table id='myTable2' class='tablesorter' style=\"width:80%%\"><thead><tr><th>Name</th>", s);
       for(i = 0; i < BWSIZE; i++) 
         fprintf(f, "<th>%s</th>", bw[i].s);
       fprintf(f, "<td>File"); 
@@ -639,7 +643,7 @@ void plugprtph(FILE *f, int fmt) {
       fprintf(f, "</td></tr></thead><tbody>\n"); 
       break;
     case FMT_MARKDOWN: 
-      fprintf(f,"#### TurboBench: Speedup %s sheet\n\n", (speedup&1)?"compression":"decompression");
+      fprintf(f,"#### TurboBench: Speedup %s sheet\n\n", s);
       fprintf(f, "|Name"); 
       for(i = 0; i < BWSIZE; i++) 
         fprintf(f, "|%s", bw[i].s);
@@ -653,7 +657,7 @@ void plugprtph(FILE *f, int fmt) {
       fprintf(f, "|-------------|\n"); 
       break;
     case FMT_VBULLETIN:
-      fprintf(f,"TurboBench: Speedup %s sheet\n\n", (speedup&1)?"compression":"decompression");
+      fprintf(f,"TurboBench: Speedup %s sheet\n\n", s);
       fprintf(f,"[CODE][B]\n"); 
     default: 
       fprintf(f,"Name           ");
@@ -700,18 +704,12 @@ void plugprtp(struct plug *plug, long long totinlen, char *finame, int fmt, int 
         break;
     }
     switch(speedup) {
-      case SP_TRANSFERD: 
-        fprintf(f,"%9.3f ", spmbs(plug->td, plug->len, i, totinlen)); 
-        break;
-      case SP_SPEEDUPD:  
-        fprintf(f,"%9d ", (int)(spdup(plug->td, plug->len, i, totinlen)+0.5)); 
-        break;
-      case SP_TRANSFERC: 
-        fprintf(f,"%9.3f ", spmbs(plug->td, plug->len, i, totinlen)); 
-        break;
-      case SP_SPEEDUPC:  
-        fprintf(f,"%9d ", (int)(spdup(plug->td, plug->len, i, totinlen)+0.5)); 
-        break;
+      case SP_TRANSFERD:  fprintf(f,"%9.3f ",     spmbs(plug->td,          plug->len, i, totinlen));       break;
+      case SP_SPEEDUPD:   fprintf(f,"%9d ", (int)(spdup(plug->td,          plug->len, i, totinlen)+0.5));  break;
+      case SP_TRANSFERC:  fprintf(f,"%9.3f ",     spmbs(plug->tc,          plug->len, i, totinlen));       break;
+      case SP_SPEEDUPC:   fprintf(f,"%9d ", (int)(spdup(plug->tc,          plug->len, i, totinlen)+0.5));  break;
+      case SP_SPEEDUP:    fprintf(f,"%9d ", (int)(spdup(plug->tc+plug->td, plug->len, i, totinlen)+0.5));  break;
+      case SP_TRANSFER:   fprintf(f,"%9.3f ",     spmbs(plug->tc+plug->td, plug->len, i, totinlen));       break;
     }
     switch(fmt) {
       case FMT_HTMLT: 
@@ -765,25 +763,19 @@ void plugplot(struct plug *plug, long long totinlen, int fmt, int speedup, char 
 
   for(i = 0; i < BWSIZE; i++)  				
     switch(speedup) {
-      case SP_TRANSFERD: 
-        fprintf(f,"%9.3f%s",    spmbs(plug->td, plug->len, i, totinlen), i+1 < BWSIZE?",":""); 
-        break;
-      case SP_SPEEDUPD:  
-        fprintf(f,"%9d%s", (int)(spdup(plug->td, plug->len, i, totinlen)+0.5), i+1 < BWSIZE?",":""); 
-        break;
-      case SP_TRANSFERC: 
-        fprintf(f,"%9.3f%s",    spmbs(plug->tc, plug->len, i, totinlen), i+1 < BWSIZE?",":""); 
-        break;
-      case SP_SPEEDUPC:  
-        fprintf(f,"%9d%s", (int)(spdup(plug->tc, plug->len, i, totinlen)+0.5), i+1 < BWSIZE?",":""); 
-        break;
+      case SP_TRANSFERD: fprintf(f,"%9.3f%s",     spmbs(plug->td,          plug->len, i, totinlen),      i+1 < BWSIZE?",":""); break;
+      case SP_SPEEDUPD:  fprintf(f,"%9d%s", (int)(spdup(plug->td,          plug->len, i, totinlen)+0.5), i+1 < BWSIZE?",":""); break;
+      case SP_TRANSFERC: fprintf(f,"%9.3f%s",     spmbs(plug->tc,          plug->len, i, totinlen),      i+1 < BWSIZE?",":""); break;
+      case SP_SPEEDUPC:  fprintf(f,"%9d%s", (int)(spdup(plug->tc,          plug->len, i, totinlen)+0.5), i+1 < BWSIZE?",":""); break;
+      case SP_SPEEDUP:   fprintf(f,"%9d%s", (int)(spdup(plug->tc+plug->td, plug->len, i, totinlen)+0.5), i+1 < BWSIZE?",":""); break;
+      case SP_TRANSFER:  fprintf(f,"%9.3f%s",     spmbs(plug->tc+plug->td, plug->len, i, totinlen),      i+1 < BWSIZE?",":""); break;
     }															   
   fprintf(f, "],\ntype: 'scatter',\nmode: 'lines+markers',\nline: {shape: 'spline'},\nname: '%s'\n};\n", name);							 
 }
 
 void plugplote(FILE *f, int fmt, char *s) {
   fprintf(f, "var data = [%s];\nvar layout = {\ntitle:'TurboBench Speedup: Transfer+%s Speed',\nxaxis: {\ntitle: '%s Transfer Speed (M=MB/s B=GB/s)',\n%s    autorange: true\n  }, \n  yaxis: {\n\ntitle: 'Speedup %%',\n%sautorange: true\n  }\n};\nPlotly.plot('myDiv1', data, layout);</script>\n",
-    s, (speedup&1)?"Compression":"Decompression", xlog?"log":"", xlog?"type: 'log',\n":"", ylog?"type: 'log',\n":"");
+    s, plugspeedup(speedup), xlog?"log":"", xlog?"type: 'log',\n":"", ylog?"type: 'log',\n":"");
 }
 
 int libcmp(const struct plug *e1, const struct plug *e2) {
@@ -826,7 +818,7 @@ void plugplotc(struct plug *plug, int k, long long totinlen, int fmt, int speedu
       if(name[0]) { 														
         fprintf(f, "],\ny: [");
         for(p = gs; p < g; p++) 
-          fprintf(f, "%.2f%s", speedup<3?FACTOR(p->len,totinlen):RATIO(p->len,totinlen), p+1<g?",":"");        
+          fprintf(f, "%.2f%s", SP_ISFACTOR(speedup)?FACTOR(p->len,totinlen):RATIO(p->len,totinlen), p+1<g?",":"");        
         fprintf(f, "],\nmode: 'markers+text',\ntype: 'scatter',\nname: '%s',\ntextposition: 'top center', textfont: { family:  'Raleway, sans-serif' }, marker: { size: 12 }\n", name, txt);	
         if(txt[0]) 
           fprintf(f, "\n,text: [%s]\n", txt);
@@ -847,12 +839,13 @@ void plugplotc(struct plug *plug, int k, long long totinlen, int fmt, int speedu
       sprintf(ts, "'%s%s%d%s'", divxy>=2?"":g->s, divxy>=2?"":",", g->lev, g->prm); 
       strcat(txt, ts); 
     }
-    double t = (speedup&1)?g->tc:g->td;
+    unsigned sptype = SP_TYPE(speedup);
+    double t = sptype==1?g->tc:(sptype?g->tc+g->td:g->td);  //0:Decomp 1:Comp 2:Comp+Decomp
     fprintf(f, "%.2f", TMBS(totinlen,t));
   }
   fprintf(f, "],\ny: [");
   for(p = gs; p < g; p++) 
-    fprintf(f, "%.2f%s", speedup<3?FACTOR(p->len,totinlen):RATIO(p->len,totinlen), p+1<g?",":"");        
+    fprintf(f, "%.2f%s", SP_ISFACTOR(speedup)?FACTOR(p->len,totinlen):RATIO(p->len,totinlen), p+1<g?",":"");        
   fprintf(f, "],\nmode: 'markers+text',\ntype: 'scatter',\nname: '%s',\ntextposition: 'top center', textfont: { family:  'Raleway, sans-serif' }, marker: { size: 12 }\n", name, txt);	
   if(txt[0]) 
     fprintf(f, "\n,text:[%s]\n", txt);
@@ -861,7 +854,7 @@ void plugplotc(struct plug *plug, int k, long long totinlen, int fmt, int speedu
 
 void plugplotce(FILE *f, int fmt, char *s) {
   fprintf(f, "var data = [%s];\nvar layout = {\ntitle:'TurboBench: %s',\nxaxis: {\ntitle: '%s speed MB/s',\n%s    autorange: true\n  }, \n  yaxis: {\n\ntitle: 'Ratio (factor)',\n%sautorange: true\n  }\n};\nPlotly.plot('myDiv2', data, layout);</script>\n",
-    s, (speedup&1)?"Compression":"Decompression", xlog2?"log":"", xlog2?"type: 'log',\n":"", ylog2?"type: 'log',\n":"");
+    s, plugspeedup(speedup), xlog2?"log":"", xlog2?"type: 'log',\n":"", ylog2?"type: 'log',\n":"");
 }
 
 int plugprts(struct plug *plug, int k, char *finame, int xstdout, unsigned long long totlen, int fmt, char *t) { 
@@ -985,8 +978,7 @@ static int mcpy=0, mode, tincx, fuzz;
 int becomp(unsigned char *_in, unsigned _inlen, unsigned char *_out, size_t outsize, unsigned bsize, int id, int lev, char *prm) { 
   unsigned char *op,*oe = _out + outsize;
     #ifdef LZTURBO
-  extern void statini(); 
-  statini();  
+  extern void statini(); statini();  
     #endif
   TMBEG(tm_rep,tm_Rep);     mempeakinit();                                           
   unsigned char *in,*ip;																							
@@ -1014,8 +1006,7 @@ int becomp(unsigned char *_in, unsigned _inlen, unsigned char *_out, size_t outs
   }
   TMEND(_inlen);	
     #ifdef LZTURBO
-  extern void statprint(); 
-  statprint();  
+  extern void statprint(); statprint();  
     #endif
   return op - _out;;
 }
@@ -1193,7 +1184,8 @@ void usage(char *pgm) {
   fprintf(stderr, " -v#      # = verbosity 0..3 (default 1)\n");
   fprintf(stderr, " -rstr    str = Remark/Comment string\n");
   fprintf(stderr, " -l#      # = 1 : print all groups/plugins, # = 2 : print all codecs\n");
-  fprintf(stderr, " -S#      Plot transfer speed: #=1 Comp speedup #=2 Decomp speedup #=3 Comp 'MB/s' #=4 Decomp 'MB/s'\n");
+  fprintf(stderr, " -S#      Plot transfer speed: #=1 Comp        speedup #=2 Decomp speedup #=3 Comp        'MB/s' #=4 Decomp 'MB/s'\n");
+  fprintf(stderr, "                               #=4 Comp+Decomp speedup                    #=5 Comp+Decomp 'MB/s'\n");
   fprintf(stderr, " -p#      #='print format' 1=text 2=html 3=htm 4=markdown 5:vBulletin 6:csv(comma) 7=tsv(tab)\n");
   fprintf(stderr, " -Q#      # Plot window 0:1920x1080, 1:1600x900, 2:1280x720, 3:800x600 (default=1)\n");
   fprintf(stderr, " -g       -g:no merge w/ old result 'file.tbb', -gg:process w/o output (use for fuzzing)\n");
@@ -1273,7 +1265,7 @@ int main(int argc, char* argv[]) {
  	  case 't': tm_tx    = atoi(optarg)*TM_T; 		 break;
  	  case 'T': tm_TX    = atoi(optarg)*TM_T; 		 break;
       case 'r': rem      = optarg;		      		 break;
-      case 'S': speedup  = atoi(optarg);       		 break;
+      case 'S': speedup  = atoi(optarg); if(speedup < 0 || speedup > SP_TRANSFER) speedup=SP_TRANSFER; break;
 
       case 'l': xplug    = atoi(optarg);             break;
       case 'm': mode++; 		 			 		 break;
