@@ -627,10 +627,10 @@ enum { SP_SPEEDUPC=1, SP_SPEEDUPD, SP_TRANSFERC, SP_TRANSFERD, SP_SPEEDUP, SP_TR
 #define SP_ISFACTOR(x) (x==SP_SPEEDUPC || x == SP_SPEEDUPD || x == SP_SPEEDUP)
 #define SP_TYPE(x)     (x<SP_SPEEDUP)?(x&1):2        // 0:Decomp 1:Comp 2:Comp+Decomp
 
-char *plugspeedup(int speedup) { return (speedup==SP_SPEEDUP || speedup==SP_TRANSFER)?"Compression+Decompression":((speedup&1)?"Compression":"Decompression"); }
+char *plugspeedup(int speedup, int trans) { return (speedup==SP_SPEEDUP || speedup==SP_TRANSFER)?(trans?"Compression+Transfer+Decompression":"Compression+Decompression"):((speedup&1)?"Compression":"Decompression"); }
 
 void plugprtph(FILE *f, int fmt) {
-  int i; char *s = plugspeedup(speedup);
+  int i; char *s = plugspeedup(speedup,0);
 
   switch(fmt) {
     case FMT_HTML: 
@@ -774,8 +774,8 @@ void plugplot(struct plug *plug, long long totinlen, int fmt, int speedup, char 
 }
 
 void plugplote(FILE *f, int fmt, char *s) {
-  fprintf(f, "var data = [%s];\nvar layout = {\ntitle:'TurboBench Speedup: Transfer+%s Speed',\nxaxis: {\ntitle: '%s Transfer Speed (M=MB/s B=GB/s)',\n%s    autorange: true\n  }, \n  yaxis: {\n\ntitle: 'Speedup %%',\n%sautorange: true\n  }\n};\nPlotly.plot('myDiv1', data, layout);</script>\n",
-    s, plugspeedup(speedup), xlog?"log":"", xlog?"type: 'log',\n":"", ylog?"type: 'log',\n":"");
+  fprintf(f, "var data = [%s];\nvar layout = {\ntitle:'TurboBench Speedup: %s Speed',\nxaxis: {\ntitle: '%s Transfer Speed (M=MB/s B=GB/s)',\n%s    autorange: true\n  }, \n  yaxis: {\n\ntitle: 'Speedup %%',\n%sautorange: true\n  }\n};\nPlotly.plot('myDiv1', data, layout);</script>\n",
+    s, plugspeedup(speedup,1), xlog?"log":"", xlog?"type: 'log',\n":"", ylog?"type: 'log',\n":"");
 }
 
 int libcmp(const struct plug *e1, const struct plug *e2) {
@@ -854,7 +854,7 @@ void plugplotc(struct plug *plug, int k, long long totinlen, int fmt, int speedu
 
 void plugplotce(FILE *f, int fmt, char *s) {
   fprintf(f, "var data = [%s];\nvar layout = {\ntitle:'TurboBench: %s',\nxaxis: {\ntitle: '%s speed MB/s',\n%s    autorange: true\n  }, \n  yaxis: {\n\ntitle: 'Ratio (factor)',\n%sautorange: true\n  }\n};\nPlotly.plot('myDiv2', data, layout);</script>\n",
-    s, plugspeedup(speedup), xlog2?"log":"", xlog2?"type: 'log',\n":"", ylog2?"type: 'log',\n":"");
+    s, plugspeedup(speedup,0), xlog2?"log":"", xlog2?"type: 'log',\n":"", ylog2?"type: 'log',\n":"");
 }
 
 int plugprts(struct plug *plug, int k, char *finame, int xstdout, unsigned long long totlen, int fmt, char *t) { 
