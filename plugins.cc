@@ -1609,9 +1609,7 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
     case P_ZSTD: { ZSTD_CCtx *ctx = ZSTD_createCCtx(); //ZSTD_compress( out, outsize, in, inlen, lev); 
       ZSTD_parameters p = ZSTD_getParams(lev, inlen, 0); p.fParams.contentSizeFlag = 1;
       //if(!dsize && lev == 22 && !strchr(prm,'W')) dsize = inlen;  // 'W' = force using default window size
-      if(dsize) { p.cParams.windowLog = bsr32(dsize)-powof2(dsize);  
-        p.cParams.chainLog = p.cParams.windowLog + ((p.cParams.strategy == ZSTD_btlazy2) | (p.cParams.strategy == ZSTD_btopt));
-      }
+      if(dsize) p.cParams.windowLog = bsr32(dsize)-powof2(dsize);     //p.cParams.chainLog = p.cParams.windowLog + ((p.cParams.strategy == ZSTD_btlazy2) | (p.cParams.strategy == ZSTD_btopt));
       unsigned rc = ZSTD_compress_advanced(ctx, out, outsize, in, inlen, NULL, 0, p);
       ZSTD_freeCCtx(ctx); 
       return rc; 
