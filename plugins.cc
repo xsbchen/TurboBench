@@ -735,7 +735,7 @@ struct snappy_env env;
   #endif
 
   #if C_ZLIBNG
-//#include "zlib-ng/zlib-ng.h"
+//#include "zlib-ng/zlib-ng.h"     // compile conflict with zlib.h 
 #include "zlib-ng_/zconf-ng.h"
 ZEXTERN const char * ZEXPORT zlibng_version(void);
 ZEXTERN int ZEXPORT zng_compress2(unsigned char *dest, size_t *destLen, const unsigned char *source,
@@ -1055,6 +1055,7 @@ unsigned argtoi(char *s, unsigned def) {
   char *p; 
   unsigned n = strtol(s, &p, 10),f = 1;
   switch(*p) {
+    case 'B': f = 1; break;
     case 'K': f = KB; break;
     case 'M': f = MB; break;
     case 'G': f = GB; break;
@@ -1224,13 +1225,19 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
 	  #endif
 	  
       #if C_BROTLI
-    case P_BROTLI: { int lgwin, mode = BROTLI_DEFAULT_MODE; brotlidic = brotlictx = brotlirep = 0; 
-        lgwin = dsize?(bsr32(dsize)-powof2(dsize)):BROTLI_DEFAULT_WINDOW;
-        if(q = strchr(prm,'m')) mode = atoi(q+(q[1]=='='?2:1));										if(strchr(prm,'V')) brotlidic++; //	if(strchr(prm,'R')) brotlirep++; if(strchr(prm,'X')) brotlictx++;
-        size_t esize = outsize;
-        int rc = BrotliEncoderCompress(lev, lgwin, (BrotliEncoderMode)mode, (size_t)inlen, (uint8_t*)in, &esize, (uint8_t*)out); 		
-        return rc?esize:0; 
-      }
+    case P_BROTLI: { int lgwin, mode = BROTLI_DEFAULT_MODE; size_t esize = outsize;
+      if(q = strchr(prm,'w')) lgwin = atoi(q+(q[1]=='='?2:1)); // set LZ77 window size as in brotli/c/tools/brotli.c
+      else lgwin = dsize?(bsr32(dsize)-powof2(dsize)):(strchr(prm,'W')?BROTLI_DEFAULT_WINDOW:BROTLI_LARGE_MAX_WINDOW_BITS); 
+      if(q = strchr(prm,'m')) mode = atoi(q+(q[1]=='='?2:1));				                                                                            
+                                                                            brotlidic = brotlictx = brotlirep = 0;  // Only by powturbo modified brotli	
+																			if(strchr(prm,'V'))      brotlidic = 1; // Disable builtin dictionary
+                                                                            if(strchr(prm,'r'))      brotlirep = 1; // Disable extended reps -1,1,-2,2,-3,3
+                                                                            else if(strchr(prm,'R')) brotlirep = 2; // disable all reps
+                                                                            if(strchr(prm,'x'))      brotlictx = 1; // disable order-2 lit context
+                                                                            if(strchr(prm,'X'))      brotlictx = 2; // disable all lit contexts
+      int rc = BrotliEncoderCompress(lev, lgwin, (BrotliEncoderMode)mode, (size_t)inlen, (uint8_t*)in, &esize, (uint8_t*)out); 		
+      return rc?esize:0; 
+    }
 	  #endif    
 
       #if C_LIBBSC
@@ -1402,7 +1409,7 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
 	  if(q=strchr(prm,'a'))  p.algo       = atoi(q+(q[1]=='='?2:1));
 	  if(q=strstr(prm,"mf=bt")) p.btMode  = 1, p.numHashBytes = atoi(q+5);
 	  if(q=strstr(prm,"mf=hc")) p.btMode  = 0, p.numHashBytes = atoi(q+5);
-	  if(dsize) p.dictSize = dsize; if(p.dictSize>inlen)  p.dictSize=inlen; if(p.dictSize>DICSIZE)  p.dictSize=DICSIZE; //printf("dsize=%u, %d,%d,%d:%d, %d,%d, %d,%d\n ", p.dictSize, p.lc,p.lp,p.pb,p.fb, p.mc,p.algo, p.btMode,p.numHashBytes);
+	  if(dsize) p.dictSize = dsize; if(p.dictSize>inlen) p.dictSize=inlen; if(p.dictSize>DICSIZE) p.dictSize=DICSIZE; //printf("dsize=%u, %d,%d,%d:%d, %d,%d, %d,%d\n ", p.dictSize, p.lc,p.lp,p.pb,p.fb, p.mc,p.algo, p.btMode,p.numHashBytes);
 	  LzmaEncProps_Normalize(&p);
       SizeT psize = LZMA_PROPS_SIZE, outlen = outsize - LZMA_PROPS_SIZE; 
   	  return LzmaEncode(out+LZMA_PROPS_SIZE, &outlen, in, inlen, &p, out, &psize, 0, NULL, &g_Alloc, &g_Alloc) == SZ_OK?outlen+LZMA_PROPS_SIZE:0;
@@ -1601,6 +1608,7 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
 	  #if C_ZSTD
     case P_ZSTD: { ZSTD_CCtx *ctx = ZSTD_createCCtx(); //ZSTD_compress( out, outsize, in, inlen, lev); 
       ZSTD_parameters p = ZSTD_getParams(lev, inlen, 0); p.fParams.contentSizeFlag = 1;
+      //if(!dsize && lev == 22 && !strchr(prm,'W')) dsize = inlen;  // 'W' = force using default window size
       if(dsize) { p.cParams.windowLog = bsr32(dsize)-powof2(dsize);  
         p.cParams.chainLog = p.cParams.windowLog + ((p.cParams.strategy == ZSTD_btlazy2) | (p.cParams.strategy == ZSTD_btopt));
       }
