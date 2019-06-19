@@ -268,6 +268,8 @@ enum {
  P_DIVBWT,
 #define C_ST         C_LIBBSC //_TRANSFORM
  P_ST,
+#define C_BRC 		 0 //COMP2
+ P_BRC,
   // --------- Entropy coders -------------
  #if C_BCM  
 #define C_BCMEC     0 //ECODER 
@@ -291,19 +293,16 @@ enum {
 #define C_FQZ 	 	ECODER    
  P_FQZ0,
  #if 1 //ndef NSIMD
-#define C_JRANS		ECODER 
+#define C_RANS_S		ECODER 
 #define C_JAC 	    	ECODER    
  #else
-#define C_JRANS		0
+#define C_RANS_S		0
 #define C_JAC 	    	0
  #endif
- P_JAC, 
- P_JRANS4_8o0,
- P_JRANS4_8o1,
- P_JRANS4_16o0,
- P_JRANS4_16o1,
- P_JRANS4_32o0,
- P_JRANS4_32o1,
+ P_JAC,
+ P_RANS_S8,
+ P_RANS_S16,
+ P_RANS_S32,
   
 #define C_FPAQC 	GPL
  P_FPAQC,
@@ -684,6 +683,10 @@ class Out: public libzpaq::Writer {
 //#include "fastbase64/include/chromiumbase64.h"
   #endif
 
+  #if C_BRC
+#include "Behemoth-Rank-Coding/brc.hpp"
+  #endif
+
   #if __cplusplus  
 extern "C" {
   #endif
@@ -821,7 +824,7 @@ size_t chromium_base64_decode(char* dest, const char* src, size_t len);
 #include "rans_static_/arith_static.h"
   #endif
   
-  #if C_JRANS
+  #if C_RANS_S
 #include "rans_static/rANS_static.h"
   #endif
 
@@ -893,7 +896,7 @@ extern "C" {
 #include "nibrans/nibrans.h"
   #endif
 
-  #if C_JRANS
+  #if C_RANS_S
 #include "rans_static/rANS_static.h"
 unsigned char *rans_compress_to_32x16(unsigned char *in,  unsigned int in_size,
 				     unsigned char *out, unsigned int *out_size,
@@ -901,6 +904,8 @@ unsigned char *rans_compress_to_32x16(unsigned char *in,  unsigned int in_size,
 unsigned char *rans_uncompress_to_32x16(unsigned char *in,  unsigned int in_size,
 				       unsigned char *out, unsigned int *out_size,
 				       int order);
+#define X_PACK 0x80
+#define X_RLE  0x40
   #endif
 
   #if __cplusplus
@@ -998,12 +1003,9 @@ struct plugs plugs[] = {
   { P_NIBRANS, 	"nibrans",			C_NIBRANS, 	"",		    "nibrans", "        ",			"https://github.com/BareRose/nibrans",												"" },
   { P_PPMDEC, 	"ppmdec", 			C_PPMDEC,	"15-03",	"PPMD Range Coder",		"Public Domain",	"http://encode.ru/threads/2149-ao0ec-Bytewise-adaptive-order-0-entropy-coder",  		""},
 
-  { P_JRANS4_8o0, "rans_static8",	C_JRANS, 	"",	"ANS/J.Bonfield",		"Public Domain",	"https://github.com/jkbonfield/rans_static",											"", E_ANS},
-  { P_JRANS4_8o1, "rans_static8o1", C_JRANS, 	"",	"ANS/J.Bonfield",		"Public Domain",	"https://github.com/jkbonfield/rans_static",											"", E_ANS},
-  { P_JRANS4_16o0,"rans_static16",  C_JRANS,	"",	"ANS/J.Bonfield",		"Public Domain",	"https://github.com/jkbonfield/rans_static",											"", E_ANS},
-  { P_JRANS4_16o1,"rans_static16o1",C_JRANS,    "",	"ANS/J.Bonfield",		"Public Domain",	"https://github.com/jkbonfield/rans_static",											"", E_ANS},
-  { P_JRANS4_32o0,"rans_static32",  C_JRANS,	"",	"ANS/J.Bonfield",		"Public Domain",	"https://github.com/jkbonfield/rans_static",											"", E_ANS},
-  { P_JRANS4_32o1,"rans_static32o1",C_JRANS,    "",	"ANS/J.Bonfield",		"Public Domain",	"https://github.com/jkbonfield/rans_static",											"", E_ANS},
+  { P_RANS_S8,   "rans_s8",	        C_RANS_S, 	"",	"ANS/J.Bonfield",		"Public Domain",	"https://github.com/jkbonfield/rans_static",											"0,1", E_ANS},
+  { P_RANS_S16,  "rans_s16",        C_RANS_S,	"",	"ANS/J.Bonfield",		"Public Domain",	"https://github.com/jkbonfield/rans_static",											"0,1", E_ANS},
+  { P_RANS_S32,  "rans_s32",        C_RANS_S,	"",	"ANS/J.Bonfield",		"Public Domain",	"https://github.com/jkbonfield/rans_static",											"0,1", E_ANS},
   
   { P_NANS,	    "naniarans",		C_NANS, 	"2015",	    "Nania Adaptive rANS",	"           ",		"http://encode.ru/threads/2079-nARANS-(Nania-Adaptive-Range-Variant-of-ANS)",			"", E_ANS},
   { P_POLHF,    "polar", 			C_POLHF, 	"10-07",	"Polar Codes",			"GPL license",		"http://www.ezcodesample.com/prefixer/prefixer_article.html",							"" },
@@ -1030,6 +1032,7 @@ struct plugs plugs[] = {
   //----- Transform -----
   { P_DIVBWT, 	"divbwt",    		C_DIVBWT,    "    ",	"bwt libdivsufsort/libbsc",	"        ",		"https://github.com/y-256/libdivsufsort",  												"" },
   { P_ST, 	    "st",    			C_ST,   	 "    ",	"st  libbsc",			"Apache license",	"https://github.com/IlyaGrebnov/libbsc",  						"3,4,5,6,7,8" },
+  { P_BRC, 	    "brc",    			C_BRC,   	 "    ",	"Behemoth-Rank-Coding",	"",	"https://github.com/loxxous/Behemoth-Rank-Coding",  						"" },
 
 //{ P_MYCODEC, 	"mycodec",			C_MYCODEC, 	"0",		"My codec",				"           ",		"",																						"" },
     #ifdef LZTURBO
@@ -1606,10 +1609,8 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
       #endif	    
 
 	  #if C_ZSTD
-    case P_ZSTD: { ZSTD_CCtx *ctx = ZSTD_createCCtx(); //ZSTD_compress( out, outsize, in, inlen, lev); 
-      ZSTD_parameters p = ZSTD_getParams(lev, inlen, 0); p.fParams.contentSizeFlag = 1;
-      //if(!dsize && lev == 22 && !strchr(prm,'W')) dsize = inlen;  // 'W' = force using default window size
-      if(dsize) p.cParams.windowLog = bsr32(dsize)-powof2(dsize);     //p.cParams.chainLog = p.cParams.windowLog + ((p.cParams.strategy == ZSTD_btlazy2) | (p.cParams.strategy == ZSTD_btopt));
+    case P_ZSTD: { ZSTD_CCtx *ctx = ZSTD_createCCtx(); ZSTD_parameters p = ZSTD_getParams(lev, inlen, 0); 									
+      if(dsize) { int windowLog = bsr32(dsize)-powof2(dsize); ZSTD_CCtx_setParameter(ctx, ZSTD_c_windowLog, windowLog); }
       unsigned rc = ZSTD_compress_advanced(ctx, out, outsize, in, inlen, NULL, 0, p);
       ZSTD_freeCCtx(ctx); 
       return rc; 
@@ -1629,8 +1630,8 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
         case 32: return srlec32(in, inlen, out, _ESC32); 
         case 64: return srlec64(in, inlen, out, _ESC64);
       } break;
-    case P_RLET: return trlec(in, inlen, out);//return brlec8(in, inlen, out, out+inlen);
-    case P_RLEM: return mrlec(in, inlen, out);
+    case P_RLET:  return trlec(in, inlen, out);
+    case P_RLEM:  return mrlec(in, inlen, out);
       #endif 
 
 	  #if C_B64
@@ -1665,6 +1666,9 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
 	  unsigned bwtidx = divbwt(in, out+sizeof(bwtidx), sa, inlen, NULL, NULL, 0); free(sa); *(unsigned *)out = bwtidx; return inlen+4; }
     case P_ST: { memcpy(out+4,in, inlen); *(unsigned *)(out) = bsc_st_encode(out+4, inlen, lev, 0); return inlen+4; }
       #endif	
+      #if C_BRC
+    case P_BRC: { struct brc_cxt_s brc_cxt; brc_init_cxt(&brc_cxt, inlen); int rc = brc_encode(&brc_cxt, in, inlen); memcpy(out, brc_cxt.block, brc_cxt.size); outlen = brc_cxt.size; brc_free_cxt(&brc_cxt); return rc?0:outlen; }
+      #endif
     //------------------------- Entropy Coders -------------------------
       #if C_MEMCPY 
     case P_MCPY:     memcpy(out, in, inlen); return inlen;
@@ -1762,14 +1766,13 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
     case P_JAC:  { unsigned outlen; arith_compress_O0(in, inlen, &outlen, out); return outlen; } 
       #endif
 
-	  #if C_JRANS
-    case P_JRANS4_16o0: { unsigned int outlen = outsize; return rans_compress_to(16,in, inlen, out, &outlen,0) ? outlen : 0;}
-    case P_JRANS4_16o1: { unsigned int outlen = outsize; return rans_compress_to(16,in, inlen, out, &outlen,1) ? outlen : 0;} 
-    case P_JRANS4_8o0:  { unsigned int outlen = outsize; return rans_compress_to( 8,in, inlen, out, &outlen,0) ? outlen : 0;}
-    case P_JRANS4_8o1:  { unsigned int outlen = outsize; return rans_compress_to( 8,in, inlen, out, &outlen,1) ? outlen : 0;}
+	  #if C_RANS_S
+    case P_RANS_S8:     { unsigned outlen = outsize; return rans_compress_to(   8,in, inlen, out, &outlen, lev) ? outlen : 0;}
+    case P_RANS_S16:    { unsigned outlen = outsize; if(strchr(prm,'r')) lev |= X_RLE; if(strchr(prm,'p')) lev |= X_PACK;
+	                                                 return rans_compress_to(  16,in, inlen, out, &outlen, lev) ? outlen : 0;
+	}
 	    #ifdef AVX2_ON
-    case P_JRANS4_32o0: { unsigned int outlen = outsize; return rans_compress_to_32x16(in, inlen, out, &outlen,0) ? outlen : 0;}  //rans_compress_to_4x16(in, in_size, out, out_size, order)
-    case P_JRANS4_32o1: { unsigned int outlen = outsize; return rans_compress_to_32x16(in, inlen, out, &outlen,1) ? outlen : 0;} 
+    case P_RANS_S32:   { unsigned outlen = outsize; return rans_compress_to_32x16(in, inlen, out, &outlen,lev) ? outlen : 0;}
 	    #endif
 	  #endif
 
@@ -2180,6 +2183,11 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
     case P_DIVBWT: memcpy(out, in+4, outlen); bsc_bwt_decode(out, outlen, *(unsigned *)in, 0, NULL, 0); return inlen;
     case P_ST: {   memcpy(out, in+4, inlen-4); bsc_st_decode(out, inlen-4, lev, *(unsigned *)(in), 0); break; }
       #endif
+
+      #if C_BRC
+    case P_BRC: { struct brc_cxt_s brc_cxt; size_t o; brc_init_cxt(&brc_cxt, outlen); brc_cxt.size = inlen; memcpy(brc_cxt.block, in, inlen); brc_decode(&brc_cxt, out, &o); brc_free_cxt(&brc_cxt); return inlen; }
+      #endif
+
 	  #if C_FB64
         #ifdef AVX2_ON
 	case P_FB64AVX:      { size_t _outlen = outlen; fast_avx2_base64_decode(out, in,inlen);return inlen; }
@@ -2252,14 +2260,11 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
     case P_JAC:  { unsigned outlen; arith_uncompress_O0(in, inlen, &outlen, out); } break;
       #endif
 
-	  #if C_JRANS
-    case P_JRANS4_16o0: rans_uncompress_to(16,in, inlen, out, (unsigned int *)&outlen,0); break;
-    case P_JRANS4_16o1: rans_uncompress_to(16,in, inlen, out, (unsigned int *)&outlen,1); break;
-    case P_JRANS4_8o0:  rans_uncompress_to( 8,in, inlen, out, (unsigned int *)&outlen,0); break;
-    case P_JRANS4_8o1:  rans_uncompress_to( 8,in, inlen, out, (unsigned int *)&outlen,1); break; 	
+	  #if C_RANS_S
+    case P_RANS_S8   : rans_uncompress_to(    8,in, inlen, out, (unsigned *)&outlen, lev); break;
+    case P_RANS_S16  : rans_uncompress_to(   16,in, inlen, out, (unsigned *)&outlen, lev); break;
 	    #ifdef AVX2_ON	 
-    case P_JRANS4_32o0: rans_uncompress_to_32x16(in, inlen, out, (unsigned int *)&outlen,0); break;
-    case P_JRANS4_32o1: rans_uncompress_to_32x16(in, inlen, out, (unsigned int *)&outlen,1); break;
+    case P_RANS_S32  : rans_uncompress_to_32x16(in, inlen, out, (unsigned *)&outlen, lev); break;
 	    #endif
 	  #endif
 
