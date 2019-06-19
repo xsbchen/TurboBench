@@ -411,6 +411,8 @@ ifeq ($(BLOSC), 1)
 OB+=c-blosc2/blosc/blosc.o c-blosc2/blosc/blosclz.o c-blosc2/blosc/schunk.o c-blosc2/blosc/delta.o c-blosc2/blosc/shuffle.o c-blosc2/blosc/shuffle-generic.o c-blosc2/blosc/shuffle-sse2.o c-blosc2/blosc/bitshuffle-generic.o
 endif
 endif
+
+#OB+=Behemoth-Rank-Coding/brc.o
 endif
 
 endif
@@ -474,7 +476,11 @@ ifeq ($(BASE64),1)
 OB+=base64/lib/libbase64.o
 endif
 #OB+=TurboBase64/turbob64c.o TurboBase64/turbob64d.o
-OB+=TurboRLE/trlec.o TurboRLE/trled.o TurboRLE/ext/mrle.o
+ifeq ($(LZTURBO),1)
+else
+OB+=TurboRLE/trlec.o TurboRLE/trled.o 
+endif
+OB+=TurboRLE/ext/mrle.o
 #OB+=fastbase64/src/chromiumbase64.o fastbase64/src/quicktimebase64.o fastbase64/src/scalarbase64.o
 ifeq ($(AVX2),1)
 #OB+=fastbase64/src/fastavxbase64.o 
@@ -501,7 +507,7 @@ endif
 
 OB+=FPC/fpc.o
 #ifeq ($(NCOMP2), 0)
-OB+=rans_static/rANS_static4x8.o rans_static/rANS_static4x16.o rans_static/rANS_static.o rans_static/arith_static.o
+OB+=rans_static/rANS_static4x8.o rans_static/rANS_static4x16pr.o rans_static/rANS_static.o rans_static/arith_static.o
 #endif
 #ifeq ($(NCOMP1), 0)
 #OB+=FiniteStateEntropy/lib/fse.o FiniteStateEntropy/lib/huff0.o
