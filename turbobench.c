@@ -977,9 +977,7 @@ static int mcpy=0, mode, tincx, fuzz;
 
 int becomp(unsigned char *_in, unsigned _inlen, unsigned char *_out, size_t outsize, unsigned bsize, int id, int lev, char *prm) { 
   unsigned char *op,*oe = _out + outsize;
-    #ifdef LZTURBO
-  extern void statini(); statini();  
-    #endif
+
   TMBEG(tm_rep,tm_Rep);     mempeakinit();                                           
   unsigned char *in,*ip;																							
   for(op = _out, in = _in; in < _in+_inlen; ) { 
@@ -1005,9 +1003,6 @@ int becomp(unsigned char *_in, unsigned _inlen, unsigned char *_out, size_t outs
     }
   }
   TMEND(_inlen);	
-    #ifdef LZTURBO
-  extern void statprint(); statprint();  
-    #endif
   return op - _out;;
 }
 
