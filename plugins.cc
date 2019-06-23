@@ -143,7 +143,11 @@ enum {
  P_LIBZPAQ, 
 #define C_LZ4		COMP1 			
  P_LZ4,
-#define C_LZ4ULTRA	0 //COMP2 			
+#ifdef LZ4ULTRA
+#define C_LZ4ULTRA	COMP2
+#else
+#define C_LZ4ULTRA	0
+#endif
  P_LZ4ULTRA,
 #define C_LIZARD 	COMP2
  P_LIZARD,    
@@ -205,7 +209,11 @@ enum {
  P_SNAPPY, 
 #define C_SNAPPY_C	COMP2		
  P_SNAPPY_C, 
-#define C_SMALLZ4	0 //COMP2
+#ifdef SMALLZ4
+#define C_SMALLZ4	COMP2
+#else
+#define C_SMALLZ4	0
+#endif
  P_SMALLZ4,
 #define C_TORNADO	GPL	 
  P_TORNADO,  
@@ -268,7 +276,7 @@ enum {
  P_DIVBWT,
 #define C_ST         C_LIBBSC //_TRANSFORM
  P_ST,
-#define C_BRC 		 0 //COMP2
+#define C_BRC 		 COMP2
  P_BRC,
   // --------- Entropy coders -------------
  #if C_BCM  
@@ -516,6 +524,7 @@ class Out: public libzpaq::Writer {
   #if C_LZ4
 #include "lz4/lib/lz4.h"
 #include "lz4/lib/lz4hc.h"
+#include "lz4/lib/lz4frame.h"
   #endif
     
   #if C_LIZARD
@@ -711,12 +720,6 @@ extern "C" {
 #include "libslz/src/slz.h"
   #endif
 
-  #if C_LZ4ULTRA
-#include "lz4ultra/src/format.h"
-#include "lz4ultra/src/shrink.h"
-#include "lz4ultra/src/expand.h"
-  #endif
-
   #if C_LZFSE
 #include "lzfse/src/lzfse.h"
   #endif  
@@ -788,6 +791,20 @@ size_t chromium_base64_decode(char* dest, const char* src, size_t len);
 #include "fastbase64/include/linuxbase64.h"
 
   #endif
+
+  #if C_LZ4ULTRA
+//#include "lz4ultra/src/lib.h"
+//#include "lz4ultra/src/shrink_inmem.h"
+//#include "lz4ultra/src/expand_inmem.h"
+#define LZ4ULTRA_FLAG_FAVOR_RATIO    (1<<0)           /**< 1 to compress with the best ratio, 0 to trade some compression ratio for extra decompression speed */
+#define LZ4ULTRA_FLAG_RAW_BLOCK      (1<<1)           /**< 1 to emit raw block */
+#define LZ4ULTRA_FLAG_INDEP_BLOCKS   (1<<2)           /**< 1 if blocks are independent, 0 if using inter-block back references */
+#define LZ4ULTRA_FLAG_LEGACY_FRAMES  (1<<3)           /**< 1 if using the legacy frames format, 0 if using the modern lz4 frame format */
+
+size_t lz4ultra_compress_inmem(const unsigned char *pInputData, unsigned char *pOutBuffer, size_t nInputSize, size_t nMaxOutBufferSize, unsigned int nFlags,  int nBlockMaxCode);
+size_t lz4ultra_decompress_inmem(const unsigned char *pFileData, unsigned char *pOutBuffer, size_t nFileSize, size_t nMaxOutBufferSize, unsigned int nFlags);
+  #endif
+
   #if __cplusplus
 }
   #endif
@@ -937,8 +954,8 @@ struct plugs plugs[] = {
   { P_LIBLZG,  	"lzg", 				C_LIBLZG,   "1.0.8",	"LibLzg",				"zlib-license",		"https://github.com/mbitsnbites/liblzg\thttp://liblzg.bitsnbites.eu/e",					"1,2,3,4,5,6,7,8,9" }, //"https://gitorious.org/liblzg" BLOCKSIZE must be < 64MB
   { P_LIBZPAQ,  "zpaq", 			C_LIBZPAQ, 	"7.10",		"Libzpaq",				"Public Domain",	"https://github.com/zpaq/zpaq",															"0,1,2,3,4,5" }, 
   { P_LIBSLZ, 	"slz",				C_LIBSLZ, 	"1.0.0",	"libslz",				"BSD license",	    "http://git.1wt.eu/web/libslz.git/",													"0,1,2,3,4,5,6,7,8,9" },
-  { P_LZ4,  	"lz4",				C_LZ4, 		"",			"Lz4",					"BSD license",		"https://github.com/Cyan4973/lz4", 														"0,1,9,12,16" }, 
-  { P_LZ4ULTRA, "lz4ultra",			C_LZ4ULTRA,	"",			"Lz4ultra",				"BSD license",		"https://github.com/emmanuel-marty/lz4ultra",											"9,12,16" }, 
+  { P_LZ4,  	"lz4",				C_LZ4, 		"",			"Lz4",					"BSD license",		"https://github.com/Cyan4973/lz4", 														"0,1,9,10,11,12,16/MfsB#" },
+  { P_LZ4ULTRA, "lz4ultra",			C_LZ4ULTRA,	"",			"Lz4ultra",				"BSD license",		"https://github.com/emmanuel-marty/lz4ultra",											"9,10,11,12/z" },
   { P_LIZARD,  	"lizard",			C_LIZARD, 	"2.0",	    "Lizard",				"BSD license",		"https://github.com/inikep/lizard",														"10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49" }, 
   { P_LZFSE, 	"lzfse", 			C_LZFSE, 	"17-03",	"lzfse",				"BSD licence",		"https://github.com/lzfse/lzfse","" },
   { P_LZFSEA, 	"lzfsea", 			C_LZFSEA, 	"2015",		"lzfsea",				"iOS and OS X",		"https://developer.apple.com/library/ios/documentation/Performance/Reference/Compression/index.html","" },
@@ -968,10 +985,10 @@ struct plugs plugs[] = {
   { P_SHOCO,    "shoco",			C_SHOCO, 	"2015",		"Shoco",				"MIT license",		"https://github.com/Ed-von-Schleck/shoco",												"" },
   { P_SNAPPY, 	"snappy",			C_SNAPPY, 	"1.1.2",	"Snappy",				"Apache license",	"https://github.com/google/snappy"														""	},
   { P_SNAPPY_C, "snappy_c",			C_SNAPPY_C,	"1.1.2",	"Snappy-c",				"BSD Like",			"https://github.com/andikleen/snappy-c",												"" },
-  { P_SMALLZ4,  "smallz4",			C_SMALLZ4,	"",		"SmalLz4",				"BSD license",		"https://github.com/stbrumme/smallz4",														"9" }, 
+  { P_SMALLZ4,  "smallz4",			C_SMALLZ4,	"",		    "SmalLz4",				"BSD license",		"https://github.com/stbrumme/smallz4",													"6,7,8,9,10,11,12/z" },
   { P_TORNADO, 	"tornado", 			C_TORNADO, 	"0.6a",		"Tornado",				"GPL license",		"http://freearc.org\thttps://github.com/nemequ/tornado",								"1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16" }, 
-  { P_WFLZ,	"wflz", 			C_WFLZ, 	"15-04",	"wfLZ",					"CC0 license",		"https://github.com/ShaneWF/wflz",														"1,2" },
-  { P_ULZ,	"ulz", 				C_ULZ, 	"2019",	"ULZ",					"Public domain",		"https://github.com/encode84/ulz",														"1,2,3,4,5,6,7,8,9" },
+  { P_WFLZ,	    "wflz", 			C_WFLZ, 	"15-04",	"wfLZ",					"CC0 license",		"https://github.com/ShaneWF/wflz",														"1,2" },
+  { P_ULZ,	    "ulz", 				C_ULZ, 	"2019",	"ULZ",					"Public domain",		"https://github.com/encode84/ulz",															"1,2,3,4,5,6,7,8,9" },
 //{ P_WKDM, 	"WKdm",				C_WKDM, 		"2003",		"WKdm",					"Apple PS License",	"http://www.opensource.apple.com/source/xnu/xnu-1456.1.26/iokit/Kernel/\thttps://github.com/berkus/wkdm", "" }, // crash
   { P_XPACK, 	"xpack", 			C_XPACK,	"16-08",	"xpack",				"BSD license",		"https://github.com/ebiggers/xpack", 													"1,2,3,4,5,6,7,8,9" },
   { P_YALZ77, 	"yalz77", 			C_YALZ77, 	"15-09",	"Yalz77",				"Public domain",	"https://github.com/ivan-tkatchev/yalz77",												"1,6,12" },
@@ -1341,28 +1358,39 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
     case P_LIBZPAQ: { zin = in; zin_ = in+inlen; zout = out; char s[3]; s[0]=lev+'0'; s[1]=0; libzpaq::compress(&zmemin, &zmemout, s); return zout - out; }
       #endif
 
-	  #if C_LZ4
-    case P_LZ4: return !lev?LZ4_compress_fast((char *)in, (char *)out, inlen, outsize, 4):(lev<9?LZ4_compress_default((char *)in, (char *)out, inlen, outsize):LZ4_compress_HC((char *)in, (char *)out, inlen, outsize, lev));
-	  #endif
-
 	  #if C_LZ4ULTRA
-    #define BSIZE (1<<16)
     case P_LZ4ULTRA: 
-      if(strchr(prm,'u')) { lsza_compressor compressor; lev=4;
-        int nBlockMaxSize = 1 << (8 + (lev << 1));      
-        lz4ultra_compressor_init(&compressor, nBlockMaxSize + BSIZE); 
-        unsigned b=0; unsigned char *ip,*op=out,*cin = malloc(nBlockMaxSize+BSIZE); if(!cin) die("malloc failed.size=%d\n", nBlockMaxSize+BSIZE);
-        for(ip = in, in += inlen; ip < in; ) { unsigned iplen = min(in-ip, nBlockMaxSize);
-          memcpy(cin, cin + BSIZE + (nBlockMaxSize - BSIZE), b); memcpy(cin+BSIZE, ip, iplen);
-          unsigned oplen = lz4ultra_shrink_block(&compressor, cin+BSIZE-b, b, iplen, op, outsize-(op-out));
-          ip += iplen; op += oplen; b = min(iplen,BSIZE);
-        } 
-        lz4ultra_compressor_destroy(&compressor);
-        free(cin);
-        return op-out; 
-      } else { return LZ4_compress_HC((char *)in, (char *)out, inlen, outsize, lev); }
+      if(!strchr(prm,'Z')) {  
+        unsigned nFlags = 0;
+        if(strchr(prm,'c')) nFlags |= LZ4ULTRA_FLAG_FAVOR_RATIO;
+        if(strchr(prm,'r')) nFlags |= LZ4ULTRA_FLAG_RAW_BLOCK;
+        if(strchr(prm,'i')) nFlags |= LZ4ULTRA_FLAG_INDEP_BLOCKS;
+        if(strchr(prm,'l')) nFlags |= LZ4ULTRA_FLAG_LEGACY_FRAMES;        
+        if(lev>9) lev = 9; lev -= 2; lev = max(lev,7); //lz4 levels 9..12 -> lzultra 4..7
+        return lz4ultra_compress_inmem(in, out, inlen, outsize, nFlags, lev);
+      } // else fall through to compression with lz4
      #undef BSIZE
 	  #endif
+
+      #if C_SMALLZ4
+    case P_SMALLZ4:  
+      if(!strchr(prm,'Z')) { gip = in; giend = in+inlen; gop = out; if(lev>9) lev=9; if(lev<4) lev=4; smallz4::lz4(getbytes,sendbytes,((1<<(7+lev))-1),false); return gop-out; }
+      #endif
+
+	  #if C_LZ4
+    case P_LZ4: 
+      if(strchr(prm,'M')) { return !lev?LZ4_compress_fast((char *)in, (char *)out, inlen, outsize, 4):(lev<9?LZ4_compress_default((char *)in, (char *)out, inlen, outsize):LZ4_compress_HC((char *)in, (char *)out, inlen, outsize, lev)); }
+      else { char *q;
+        #define LZ4_BLOCKSIZEID_DEFAULT 7
+        LZ4F_preferences_t opts = LZ4F_INIT_PREFERENCES;   
+                              opts.compressionLevel      = lev;
+        if(strchr(prm,'s'))   opts.favorDecSpeed         = 1;
+        if(strchr(prm,'f'))   opts.autoFlush             = 1;
+                              opts.frameInfo.blockSizeID = LZ4_BLOCKSIZEID_DEFAULT;
+        if(q=strchr(prm,'B')) opts.frameInfo.blockSizeID = atoi(q+(q[1]=='='?2:1)); if(opts.frameInfo.blockSizeID>7) opts.frameInfo.blockSizeID=7;else if(opts.frameInfo.blockSizeID && opts.frameInfo.blockSizeID<4) opts.frameInfo.blockSizeID=4;
+        return LZ4F_compressFrame(out, outsize, in, inlen, &opts);
+      }
+      #endif
 	  
 	  #if C_LIZARD
     case P_LIZARD: return Lizard_compress((const char*)in, (char*)out, inlen, outsize, lev); 
@@ -1544,10 +1572,6 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
     case P_SNAPPY_C:   { size_t outlen=outsize; int rc = snappy_compress(&env, (const char *)in, inlen, (char *)out, &outlen); return outlen;}
 	  #endif 
 	  
-      #if C_SMALLZ4
-    case P_SMALLZ4:  { gip = in; giend = in+inlen; gop = out; if(lev>9) lev=9;if(lev<4) lev=4; smallz4::lz4(getbytes,sendbytes,(1<<(7+lev)),false); return gop-out; }
-      #endif 
-
       #if C_TORNADO
     case P_TORNADO:      return torcompress(lev, in, out, inlen);
       #endif	
@@ -1940,20 +1964,34 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
     case P_LIBLZF: lzf_decompress(in, inlen, out, outlen); break;
 	  #endif
 
-	  #if C_LZ4
-    case P_LZ4: LZ4_decompress_safe((const char *)in, (char *)out, inlen, outlen); break;
-      #endif
-
       #if C_SMALLZ4
     case P_SMALLZ4: 
-      if(strchr(prm,'z')) LZ4_decompress_safe((const char *)(in), (char *)out, inlen, outlen); //smallz4 is not compatible with lz4 block functions.
-      else { gip = in; giend = in+inlen; gop = out; unlz4(getbyte,sendbytes,NULL); } 
-      break; 
+      if(!strchr(prm,'z')) { gip = in; giend = in+inlen; gop = out; unlz4(getbyte,sendbytes,NULL); break; }         
       #endif 
 	  
 	  #if C_LZ4ULTRA
-    case P_LZ4ULTRA: if(strchr(prm,'z')) LZ4_decompress_safe((const char *)in, (char *)out, inlen, outlen); else lz4ultra_expand_block(in, inlen, out, 0, outlen); break;
-	  #endif
+    case P_LZ4ULTRA: 																//if(strchr(prm,'z')) LZ4_decompress_safe((const char *)in, (char *)out, inlen, outlen);
+      if(!strchr(prm,'z')) {
+        unsigned nFlags = 0; 
+        if(strchr(prm,'c')) nFlags |= LZ4ULTRA_FLAG_FAVOR_RATIO;
+        if(strchr(prm,'r')) nFlags |= LZ4ULTRA_FLAG_RAW_BLOCK;
+        if(strchr(prm,'i')) nFlags |= LZ4ULTRA_FLAG_INDEP_BLOCKS;
+        if(strchr(prm,'l')) nFlags |= LZ4ULTRA_FLAG_LEGACY_FRAMES;        
+        lz4ultra_decompress_inmem(in, out, inlen, outlen, nFlags);//lz4ultra_expand_block(in, inlen, out, 0, outlen); 
+        break;
+      } // else fall throught to decompression with lz4
+ 	  #endif
+
+	  #if C_LZ4
+    case P_LZ4: 
+      if(strchr(prm,'M')) { LZ4_decompress_safe((const char *)in, (char *)out, inlen, outlen); break; }
+      else {
+        lz4: LZ4F_dctx *ctx; LZ4F_createDecompressionContext(&ctx, LZ4F_VERSION);
+        size_t ilen = inlen, olen = outlen, rc = LZ4F_decompress(ctx, out, &olen, in, &ilen, NULL);
+        LZ4F_freeDecompressionContext(ctx);
+        return rc;
+      } 
+      #endif
 
 	  #if C_LIZARD
     case P_LIZARD: return Lizard_decompress_safe((const char *)in, (char *)out, inlen, outlen); 
