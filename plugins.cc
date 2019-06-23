@@ -276,7 +276,7 @@ enum {
  P_DIVBWT,
 #define C_ST         C_LIBBSC //_TRANSFORM
  P_ST,
-#define C_BRC 		 COMP2
+#define C_BRC 		 0 // COMP2
  P_BRC,
   // --------- Entropy coders -------------
  #if C_BCM  
@@ -951,7 +951,24 @@ struct plugs plugs[] = {
   { P_LIBBSCC, 	"bscqlfc", 			C_LIBBSC, 	"3.1.0",	"bsc",					"Apache license",	"https://github.com/IlyaGrebnov/libbsc",												"1,2"}, 
   { P_LIBDEFLATE,"libdeflate", 	    C_LIBDEFLATE,"17-04",	"libdeflate",			"CC0 license",		"https://github.com/ebiggers/libdeflate",												"1,2,3,4,5,6,7,8,9,12/dg"}, 
   { P_LIBLZF, 	"lzf", 				C_LIBLZF, 	"1.06",		"LibLZF",				"BSD license",		"http://oldhome.schmorp.de/marc/liblzf.html\thttps://github.com/nemequ/liblzf",			"" },
-  { P_LIBLZG,  	"lzg", 				C_LIBLZG,   "1.0.8",	"LibLzg",				"zlib-license",		"https://github.com/mbitsnbites/liblzg\thttp://liblzg.bitsnbites.eu/e",					"1,2,3,4,5,6,7,8,9" }, //"https://gitorious.org/liblzg" BLOCKSIZE must be < 64MB
+  { P_LIBLZG,  	"lzg", 				C_LIBLZG,[CODE]      C Size  ratio%     C MB/s     D MB/s   Name   (bold = pareto) MB=1.000.0000
+      722972    58.6      2.06   2952.88   smallz4 9z   (decompressed w/ lz4)
+      722972    58.6       2.06     550.29   smallz4 9       
+      722974    58.6     21.44    2931.84   lz4 12          
+      728247    59.0       6.74   3282.72   lz4ultra 9z  (decompressed w/ lz4)
+      728247    59.0       6.74    3164.88   lz4ultra 9      
+      732790    59.4      20.35   3467.14   lz4 12s      (favor-decSpeed)      
+[/CODE]
+
+- bible-corpus-1.2.1.tar ( 528,742,400 bytes)
+[CODE]      C Size  ratio%     C MB/s     D MB/s   Name    (bold = pareto) MB=1.000.0000
+   127441869    24.1      0.91   3540.65   smallz4 9z     
+   127441869    24.1      0.91     827.90   smallz4 9      
+   127444603    24.1     10.37   3561.42   lz4 12          
+   131891339    24.9       4.33   4402.85   lz4ultra 12z    
+   131891339    24.9       4.33    4069.44   lz4ultra 9     
+   132380523    25.0       9.22    4324.17   lz4 12s         
+[/CODE]   "1.0.8",	"LibLzg",				"zlib-license",		"https://github.com/mbitsnbites/liblzg\thttp://liblzg.bitsnbites.eu/e",					"1,2,3,4,5,6,7,8,9" }, //"https://gitorious.org/liblzg" BLOCKSIZE must be < 64MB
   { P_LIBZPAQ,  "zpaq", 			C_LIBZPAQ, 	"7.10",		"Libzpaq",				"Public Domain",	"https://github.com/zpaq/zpaq",															"0,1,2,3,4,5" }, 
   { P_LIBSLZ, 	"slz",				C_LIBSLZ, 	"1.0.0",	"libslz",				"BSD license",	    "http://git.1wt.eu/web/libslz.git/",													"0,1,2,3,4,5,6,7,8,9" },
   { P_LZ4,  	"lz4",				C_LZ4, 		"",			"Lz4",					"BSD license",		"https://github.com/Cyan4973/lz4", 														"0,1,9,10,11,12,16/MfsB#" },
