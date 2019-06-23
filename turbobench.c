@@ -990,14 +990,14 @@ int becomp(unsigned char *_in, unsigned _inlen, unsigned char *_out, size_t outs
 
     for(ip = in, in += inlen; ip < in; ) { 
       size_t iplen = in - ip; iplen = min(iplen, bsize);       
-      bs = (min(bsize, iplen) < (1<<16))?2:4;
+      bs = mode?((min(bsize, iplen) < (1<<16))?2:4):0;
       int oplen = codcomp(ip, iplen, op+bs, oe-(op+bs), id, lev,prm);
       if(oplen <= 0 || oplen >= iplen && mcpy) {
 	    if(mcpy) { memcpy(op+bs, ip, iplen); oplen = iplen; }
 	    else if(oplen <= 0) return 0;
 	  }
       if(bs == 2 && oplen >= (1<<16)) { printf("Output larger than input! Use option '-P'\n"); exit(-1); }
-      bs==2?(ctou16(op) = oplen):(ctou32(op) = oplen); op += oplen+bs; ip += iplen; 
+      if(mode) { bs==2?(ctou16(op) = oplen):(ctou32(op) = oplen); } op += oplen+bs; ip += iplen; 
       if(op > _out+outsize) 
 	    die("Overflow error %llu, %u in lib=%d\n", outsize, (int)(ptrdiff_t)(op - _out), id);                                                      
     }
@@ -1012,7 +1012,7 @@ int bedecomp(unsigned char *_in, int _inlen, unsigned char *_out, unsigned _outl
   unsigned char *out,*op;
   for(ip = _in, out = _out; out < _out+_outlen;) {
     unsigned outlen,bs; 
-    if(mode) { outlen = /*vbget32(ip);*/ ctou32(ip); ip += 4; 
+    if(mode) { outlen = ctou32(ip); ip += 4; 
       ctou32(out) = outlen; out += 4;
       if(out+outlen>_out+_outlen) 
         outlen = (_out+_outlen)-out; 
@@ -1020,8 +1020,8 @@ int bedecomp(unsigned char *_in, int _inlen, unsigned char *_out, unsigned _outl
     for(op = out, out += outlen; op < out; ) { 
       unsigned oplen = out - op; 
       oplen = min(oplen, bsize); 
-      bs = (min(bsize,oplen)<(1<<16))?2:4;
-      int l, iplen = bs==2?ctou16(ip):ctou32(ip); ip += bs;
+      bs = mode?((min(bsize,oplen)<(1<<16))?2:4):0;
+      int l, iplen = mode?(bs==2?ctou16(ip):ctou32(ip)):_inlen; ip += bs;
       if(mcpy && iplen==oplen) 
         memcpy(op, ip, oplen); 
 	  else l = coddecomp(ip, iplen, op, oplen, id, lev,prm);
