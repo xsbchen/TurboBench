@@ -422,7 +422,7 @@ OB+=c-blosc2/blosc/blosc.o c-blosc2/blosc/blosclz.o c-blosc2/blosc/schunk.o c-bl
 endif
 endif
 
-OB+=Behemoth-Rank-Coding/brc.o
+#OB+=Behemoth-Rank-Coding/brc.o
 endif
 
 endif
