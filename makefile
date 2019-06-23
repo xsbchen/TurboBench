@@ -163,10 +163,10 @@ DEFS+=MINIZ
 endif
 #------------- 
 # 
-CFLAGS+=$(DDEBUG) -w -std=gnu99 -fpermissive -Wall -Izstd/lib -Izstd/lib/common $(DEFS) -Ilz4/lib -Ilizard/lib -Ibrotli/c/include -Ibrotli/c/enc -Ilibdeflate -Ilibdeflate/common -Ibrieflz/include
-#CFLAGS+=-Ifastbase64/include -DINLINE=inline -Ilz4ultra/src/libdivsufsort/include -Ilz4ultra/src
+CFLAGS+=$(DDEBUG) -w -std=gnu99 -fpermissive -Wall -Izstd/lib -Izstd/lib/common $(DEFS) -Ilz4/lib -Ilizard/lib -Ibrotli/c/include -Ibrotli/c/enc -Ilibdeflate -Ilibdeflate/common -Ibrieflz/include 
+#CFLAGS+=-Ifastbase64/include -DINLINE=inline 
 CXXFLAGS+=$(DDEBUG) -w -fpermissive -Wall -fno-rtti -Ilzham_codec_devel/include -Ilzham_codec_devel/lzhamcomp -Ilzham_codec_devel/lzhamdecomp -D"UINT64_MAX=-1ull" -Ibrotli/c/include -Ibrotli/c/enc -ICSC/src/libcsc -D_7Z_TYPES_ -DLIBBSC_SORT_TRANSFORM_SUPPORT $(DEFS)
-#CXXFLAGS+=-Imarlin/inc -Ilz4ultra/src/libdivsufsort/include 
+#CXXFLAGS+=-Imarlin/inc
 
 #CXXFLAGS+=$(DDEBUG) -std=gnu++14 -Wall -Wextra -Wcast-qual -Wcast-align -Wstrict-aliasing=1 -Wswitch-enum -Wundef -pedantic  -Wfatal-errors -Wshadow 
 all:  turbobench
@@ -178,7 +178,7 @@ endif
 OB+=plugins.o 
 #----------------------- COMP1 -----------------------------------------
 ifeq ($(NCOMP1), 0)
-OB+=lz4/lib/lz4hc.o lz4/lib/lz4.o  
+OB+=lz4/lib/lz4hc.o lz4/lib/lz4.o lz4/lib/lz4frame.o
 OB+=lzma/C/Alloc.o lzma/C/LzFind.o lzma/C/LzmaDec.o lzma/C/LzmaEnc.o lzma/C/LzmaLib.o 
 OB+=zstd/lib/common/pool.o zstd/lib/common/xxhash.o zstd/lib/common/error_private.o zstd/lib/compress/hist.o zstd/lib/compress/zstd_compress.o zstd/lib/compress/zstd_double_fast.o zstd/lib/compress/zstd_fast.o zstd/lib/compress/zstd_lazy.o zstd/lib/compress/zstd_ldm.o zstd/lib/compress/zstdmt_compress.o zstd/lib/compress/zstd_opt.o \
 zstd/lib/decompress/zstd_decompress.o zstd/lib/decompress/zstd_decompress_block.o zstd/lib/decompress/zstd_ddict.o zstd/lib/compress/fse_compress.o zstd/lib/common/fse_decompress.o zstd/lib/compress/huf_compress.o zstd/lib/decompress/huf_decompress.o zstd/lib/common/zstd_common.o zstd/lib/common/entropy_common.o
@@ -324,6 +324,18 @@ nakamichi/Nakamichi_Okamigan.o: nakamichi/Nakamichi_Okamigan.c
 	$(CC) -O3 -msse4.1 $(MARCH) $< -c -o $@ 
 	
 #WKDM=wkdm/WKdmCompress.o wkdm/WKdmDecompress.o
+
+ifeq ($(LZ4ULTRA), 1)
+DEFS+=-DLZ4ULTRA
+CFLAGS+=-Ilz4ultra/src -Ilz4ultra/src/libdivsufsort/include
+OB+=lz4ultra/src/shrink_inmem.o lz4ultra/src/expand_inmem.o lz4ultra/src/shrink_block.o lz4ultra/src/expand_block.o lz4ultra/src/shrink_context.o lz4ultra/src/matchfinder.o lz4ultra/src/frame.o lz4ultra/src/libdivsufsort/lib/divsufsort.o 
+#OB+=lz4ultra/src/libdivsufsort/lib/sssort.o lz4ultra/src/libdivsufsort/lib/trsort.o
+endif
+
+ifeq ($(SMALLZ4), 1)
+DEFS+=-DSMALLZ4
+endif
+
 ifeq ($(NCOMP2), 0)
 ifeq ($(AOM),1)
 OB+=aom_/aom.o aom/aom_dsp/entenc.o aom/aom_dsp/entdec.o aom/aom_dsp/entcode.o 
@@ -375,8 +387,6 @@ OB+=lzlib-1.11/lzlib.o lzlib_/bbexample.o
 OB+=fast-lzma2/dict_buffer.o fast-lzma2/fl2_common.o fast-lzma2/fl2_compress.o fast-lzma2/fl2_decompress.o fast-lzma2/lzma2_dec.o fast-lzma2/lzma2_enc.o fast-lzma2/radix_bitpack.o fast-lzma2/radix_mf.o fast-lzma2/radix_struct.o \
 fast-lzma2/range_enc.o fast-lzma2/fl2_threading.o fast-lzma2/fl2_pool.o fast-lzma2/util.o
 #fast-lzma2/xxhash.o fast-lzma2/fl2_error_private.o  
-#OB+=lz4ultra/src/shrink.o lz4ultra/src/expand.o lz4ultra/src/libdivsufsort/lib/divsufsort.o 
-#OB+=lz4ultra/src/libdivsufsort/lib/sssort.o lz4ultra/src/libdivsufsort/lib/trsort.o
 ifeq ($(NSIMD),0)
 OB+=LZSSE/lzsse2/lzsse2.o LZSSE/lzsse4/lzsse4.o LZSSE/lzsse8/lzsse8.o 
 OB+=nakamichi/Nakamichi_Washigan.o
@@ -412,7 +422,7 @@ OB+=c-blosc2/blosc/blosc.o c-blosc2/blosc/blosclz.o c-blosc2/blosc/schunk.o c-bl
 endif
 endif
 
-#OB+=Behemoth-Rank-Coding/brc.o
+OB+=Behemoth-Rank-Coding/brc.o
 endif
 
 endif
