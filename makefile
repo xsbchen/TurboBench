@@ -107,6 +107,8 @@ endif
 # No c++ codecs
 NCPP=0
 
+LZSA=1
+
 DDEBUG=-DNDEBUG -s
 #DDEBUG=-g
 #-------------- compressor specific
@@ -161,6 +163,8 @@ endif
 ifeq ($(MINIZ), 1)
 DEFS+=MINIZ
 endif
+
+#DIVSORT=0
 #------------- 
 # 
 CFLAGS+=$(DDEBUG) -w -std=gnu99 -fpermissive -Wall -Izstd/lib -Izstd/lib/common $(DEFS) -Ilz4/lib -Ilizard/lib -Ibrotli/c/include -Ibrotli/c/enc -Ilibdeflate -Ilibdeflate/common -Ibrieflz/include 
@@ -209,6 +213,7 @@ ifeq ($(ZLIB_ZNG), 1)
 #  make ZLIB_ZNG=1
 DEFS+=-DZLIB_ZNG
 OB+=zlib-ng_/libz-ng.a
+#OB+=zlib-ng_/libz-ng_arm.a
 endif
 
 
@@ -328,8 +333,12 @@ nakamichi/Nakamichi_Okamigan.o: nakamichi/Nakamichi_Okamigan.c
 ifeq ($(LZ4ULTRA), 1)
 DEFS+=-DLZ4ULTRA
 CFLAGS+=-Ilz4ultra/src -Ilz4ultra/src/libdivsufsort/include
-OB+=lz4ultra/src/shrink_inmem.o lz4ultra/src/expand_inmem.o lz4ultra/src/shrink_block.o lz4ultra/src/expand_block.o lz4ultra/src/shrink_context.o lz4ultra/src/matchfinder.o lz4ultra/src/frame.o lz4ultra/src/libdivsufsort/lib/divsufsort.o 
-#OB+=lz4ultra/src/libdivsufsort/lib/sssort.o lz4ultra/src/libdivsufsort/lib/trsort.o
+OB+=lz4ultra/src/shrink_inmem.o lz4ultra/src/expand_inmem.o lz4ultra/src/shrink_block.o lz4ultra/src/expand_block.o lz4ultra/src/shrink_context.o lz4ultra/src/matchfinder.o lz4ultra/src/frame.o 
+ifeq ($(DIVSORT), 1)
+else
+OB+=lz4ultra/src/libdivsufsort/lib/divsufsort.o lz4ultra/src/libdivsufsort/lib/sssort.o lz4ultra/src/libdivsufsort/lib/trsort.o
+DIVSORT=1
+endif
 endif
 
 ifeq ($(SMALLZ4), 1)
@@ -366,7 +375,7 @@ OB+=heatshrink_/heatshrink.o heatshrink/heatshrink_encoder.o heatshrink/heatshri
 ifeq ($(IGZIP),1)
 #OB+=isa-l/igzip/igzip.o isa-l/igzip/hufftables_c.o isa-l/igzip/igzip_base.o isa-l/igzip/igzip_icf_base.o isa-l/igzip/crc32_gzip_base.o isa-l/igzip/flatten_ll.o isa-l/igzip/encode_df.o
 #OB+=isa-l/.libs/libisal.a
-OB+=libisal.a
+OB+=/usr/lib/libisal.so
 endif
 OB+=liblzf/lzf_c.o liblzf/lzf_c_best.o liblzf/lzf_d.o 
 OB+=liblzg/src/lib/encode.o liblzg/src/lib/decode.o liblzg/src/lib/checksum.o 
@@ -390,6 +399,17 @@ fast-lzma2/range_enc.o fast-lzma2/fl2_threading.o fast-lzma2/fl2_pool.o fast-lzm
 ifeq ($(NSIMD),0)
 OB+=LZSSE/lzsse2/lzsse2.o LZSSE/lzsse4/lzsse4.o LZSSE/lzsse8/lzsse8.o 
 OB+=nakamichi/Nakamichi_Washigan.o
+endif
+
+ifeq ($(LZSA), 1)
+CFLAGS+=-Ilzsa/src -Ilzsa/src/libdivsufsort/include
+OB+=lzsa/src/shrink_inmem.o lzsa/src/expand_inmem.o lzsa/src/shrink_block_v1.o lzsa/src/shrink_block_v2.o lzsa/src/expand_block_v1.o lzsa/src/expand_block_v2.o lzsa/src/expand_context.o lzsa/src/shrink_context.o lzsa/src/matchfinder.o lzsa/src/frame.o
+ifeq ($(DIVSORT), 1)
+else
+OB+=lzsa/src/libdivsufsort/lib/divsufsort.o lzsa/src/libdivsufsort/lib/sssort.o lzsa/src/libdivsufsort/lib/trsort.o
+DIVSORT=1
+endif
+DEFS+=-DLZSA
 endif
 
 ifeq ($(MINIZ), 1)
