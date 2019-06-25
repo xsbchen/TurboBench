@@ -137,3 +137,6 @@
 [submodule "lzma"]
 	path = lzma
 	url = https://github.com/sisong/lzma
+[submodule "lzsa"]
+	path = lzsa
+	url = https://github.com/emmanuel-marty/lzsa
