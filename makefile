@@ -107,7 +107,11 @@ endif
 # No c++ codecs
 NCPP=0
 
+
+# make args to enable compressors
 LZSA=1
+#LZ4ULTRA
+#SMALLZ4=1
 
 DDEBUG=-DNDEBUG -s
 #DDEBUG=-g
