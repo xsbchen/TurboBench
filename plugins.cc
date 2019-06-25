@@ -167,6 +167,12 @@ enum {
  P_LZO1b, P_LZO1c, P_LZO1f, P_LZO1x, P_LZO1y, P_LZO1z, P_LZO2a,
 #define C_LZOMA		0
  P_LZOMA, 
+#ifdef LZSA
+#define C_LZSA		COMP2
+#else
+#define C_LZSA		0
+#endif
+ P_LZSA, 
    #ifndef NSIMD
 #define C_LZSSE     COMP2
    #else
@@ -582,6 +588,13 @@ class Out: public libzpaq::Writer {
 #include "lzoma_/lzoma.h"
   #endif
 
+  #if C_LZSA
+#include "lzsa/src/shrink_inmem.h"
+#include "lzsa/src/expand_inmem.h"
+#define LZSA_FLAG_FAVOR_RATIO    (1<<0)      /**< 1 to compress with the best ratio, 0 to trade some compression ratio for extra decompression speed */
+#define LZSA_FLAG_RAW_BLOCK      (1<<1)      /**< 1 to emit raw block */
+  #endif
+
   #if C_LZSSE
 #include "LZSSE/lzsse2/lzsse2.h"
 #include "LZSSE/lzsse4/lzsse4.h"
@@ -789,17 +802,16 @@ size_t chromium_base64_decode(char* dest, const char* src, size_t len);
 #include "fastbase64/include/scalarbase64.h"
 #include "fastbase64/include/quicktimebase64.h"
 #include "fastbase64/include/linuxbase64.h"
-
   #endif
 
   #if C_LZ4ULTRA
-//#include "lz4ultra/src/lib.h"
-//#include "lz4ultra/src/shrink_inmem.h"
-//#include "lz4ultra/src/expand_inmem.h"
 #define LZ4ULTRA_FLAG_FAVOR_RATIO    (1<<0)           /**< 1 to compress with the best ratio, 0 to trade some compression ratio for extra decompression speed */
 #define LZ4ULTRA_FLAG_RAW_BLOCK      (1<<1)           /**< 1 to emit raw block */
 #define LZ4ULTRA_FLAG_INDEP_BLOCKS   (1<<2)           /**< 1 if blocks are independent, 0 if using inter-block back references */
 #define LZ4ULTRA_FLAG_LEGACY_FRAMES  (1<<3)           /**< 1 if using the legacy frames format, 0 if using the modern lz4 frame format */
+//#include "lz4ultra/src/lib.h"
+//#include "lz4ultra/src/shrink_inmem.h"
+//#include "lz4ultra/src/expand_inmem.h"
 
 size_t lz4ultra_compress_inmem(const unsigned char *pInputData, unsigned char *pOutBuffer, size_t nInputSize, size_t nMaxOutBufferSize, unsigned int nFlags,  int nBlockMaxCode);
 size_t lz4ultra_decompress_inmem(const unsigned char *pFileData, unsigned char *pOutBuffer, size_t nFileSize, size_t nMaxOutBufferSize, unsigned int nFlags);
@@ -808,6 +820,7 @@ size_t lz4ultra_decompress_inmem(const unsigned char *pFileData, unsigned char *
   #if __cplusplus
 }
   #endif
+
 
   //------------------------------------ Transform ----------------------------------
   #if C_DIVBWT || C_LIBBSC
@@ -972,6 +985,7 @@ struct plugs plugs[] = {
   { P_LZO1z, 	"lzo1z", 			C_LZO, 		"2.09",		"Lzo",					"GPL license",		"http://www.oberhumer.com/opensource/lzo\thttps://github.com/nemequ/lzo",				"999" }, 
   { P_LZO2a, 	"lzo2a", 			C_LZO, 		"2.09",		"Lzo",					"GPL license",		"http://www.oberhumer.com/opensource/lzo\thttps://github.com/nemequ/lzo",				"999" }, 
   { P_LZOMA, 	"lzoma", 			C_LZOMA,	"16-03",	"lzoma",				"GPL license",		"https://github.com/alef78/lzoma", 														"1,2,3,4,5,6,7,8,9" },
+  { P_LZSA, 	"lzsa", 			C_LZSA,		"",	"lzsa",				"",		"https://github.com/emmanuel-marty/lzsa", 																		"9" },
   { P_LZSSE2,	"lzsse2",   	    C_LZSSE,	"16-04",	"lzsse",				"BSD license",		"https://github.com/ConorStokes/LZSSE",													"1,2,3,4,5,6,7,8,9,12,16,17"}, 
   { P_LZSSE4,	"lzsse4",   	    C_LZSSE,	"16-04",	"lzsse",				"BSD license",		"https://github.com/ConorStokes/LZSSE",													"0,1,2,3,4,5,6,7,8,9,12,16,17"}, 
   { P_LZSSE8,	"lzsse8",   	    C_LZSSE,	"16-04",	"lzsse",				"BSD license",		"https://github.com/ConorStokes/LZSSE",													"0,1,2,3,4,5,6,7,8,9,12,16,17"}, 
@@ -1369,7 +1383,6 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
         if(lev>9) lev = 9; lev -= 2; lev = max(lev,7); //lz4 levels 9..12 -> lzultra 4..7
         return lz4ultra_compress_inmem(in, out, inlen, outsize, nFlags, lev);
       } // else fall through to compression with lz4
-     #undef BSIZE
 	  #endif
 
       #if C_SMALLZ4
@@ -1512,6 +1525,17 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
     case P_LZO2a:   { lzo_uint out_len; lzo2a_999_compress(in, inlen, out, &out_len, workmem); return out_len; }
       #endif 
  
+	  #if C_LZSA
+	case P_LZSA:  {  
+      unsigned nFlags = 0, nMinMatchSize=4, nFormatVersion=1; char *q;
+      if(strchr(prm,'c')) nFlags |= LZSA_FLAG_FAVOR_RATIO;
+      if(strchr(prm,'r')) nFlags |= LZSA_FLAG_RAW_BLOCK;
+      if(strchr(prm,'f')) nFormatVersion = 2;
+      if(q=strchr(prm,'l')) nMinMatchSize = atoi(q+(q[1]=='='?2:1));
+      return lzsa_compress_inmem(in, out, inlen, outsize, nFlags, nMinMatchSize, nFormatVersion);
+    } 
+     #endif
+
       #if C_LZSS
 	case P_LZSS1:   { return lzss_encode(in, inlen, out, 0); }
     case P_LZSS2:   { return lzss_encode(in, inlen, out, 1); }
@@ -2079,6 +2103,17 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
 
       #if C_ZLING
     case P_ZLING: zling_decompress(in, inlen, out, outlen); break;
+      #endif
+
+	  #if C_LZSA
+	case P_LZSA:  { 
+      unsigned nFlags = 0,nFormatVersion=1; 
+      if(strchr(prm,'c')) nFlags |= LZSA_FLAG_FAVOR_RATIO;
+      if(strchr(prm,'r')) nFlags |= LZSA_FLAG_RAW_BLOCK;
+      if(strchr(prm,'f')) nFormatVersion = 2;
+      lzsa_decompress_inmem(in, out, inlen, outlen, nFlags, &nFormatVersion);
+      break;
+    }
       #endif
 
 	  #if C_LZSS
