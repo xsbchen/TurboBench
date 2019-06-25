@@ -159,6 +159,7 @@ Compressors with versions 16.08.2016 <br>
  - [LibLzg v1.0.8](https://github.com/mbitsnbites/liblzg) 
  - [LibSLZ v1.0.0](http://1wt.eu/projects/libslz/)
  - [Lz4 v1.7.5](https://github.com/Cyan4973/lz4) 
+ - [Lz4ultra](https://github.com/emmanuel-marty/lz4ultra)
  - [lizard](https://github.com/inikep/lz5) 
  - [Lzfse](https://github.com/lzfse/lzfse)
  - [Lzham v1.1](https://github.com/richgel999/lzham_codec_devel) 
@@ -168,6 +169,7 @@ Compressors with versions 16.08.2016 <br>
  - [Lzo v2.09](http://www.oberhumer.com/opensource/lzo) 
  - [Lzoma v16-06](https://github.com/alef78/lzoma) 
  - [LZSSE](https://github.com/ConorStokes/LZSSE)
+ - [LZSA](https://github.com/emmanuel-marty/lzsa)
  - [Miniz v13-10](https://github.com/richgel999/miniz) 
  - [ms-compress v16.07](https://github.com/coderforlife/ms-compress) 
  - [Nakamichi Washigan](http://www.overclock.net/t/1577282/fastest-open-source-decompressors-benchmark#post_24538188)
@@ -177,6 +179,7 @@ Compressors with versions 16.08.2016 <br>
  - [sap v17-05](https://github.com/CoreSecurity/pysap) 
  - [shoco v2015](https://github.com/Ed-von-Schleck/shoco) 
  - [Shrinker v0.1/r9](https://code.google.com/p/data-shrinker) 
+ - [Smallz4](https://github.com/stbrumme/smallz4) 
  - [Snappy v1.1.3](https://github.com/google/snappy) 
  - [Snappy-c v1.1.2/14.04](https://github.com/andikleen/snappy-c) 
  - [Tornado v0.6a](http://freearc.org) 
@@ -242,5 +245,5 @@ Compressors with versions 16.08.2016 <br>
  - [bwt:libdivsufsort](https://github.com/y-256/libdivsufsort)
  - [st: bsc schindler transform](https://github.com/IlyaGrebnov/libbsc)
 
-Last update: 05 Jun 2019
+Last update: 25 Jun 2019
 
