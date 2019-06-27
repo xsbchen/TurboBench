@@ -1530,8 +1530,8 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
       unsigned nFlags = 0, nMinMatchSize=4, nFormatVersion=1; char *q;
       if(strchr(prm,'c')) nFlags |= LZSA_FLAG_FAVOR_RATIO;
       if(strchr(prm,'r')) nFlags |= LZSA_FLAG_RAW_BLOCK;
-      if(strchr(prm,'f')) nFormatVersion = 2;
-      if(q=strchr(prm,'l')) nMinMatchSize = atoi(q+(q[1]=='='?2:1));
+      if(q=strchr(prm,'f')) nFormatVersion = atoi(q+(q[1]=='='?2:1)); if(nFormatVersion < 1) nFormatVersion=1; if(nFormatVersion > 2) nFormatVersion=2;
+      if(q=strchr(prm,'m')) nMinMatchSize = atoi(q+(q[1]=='='?2:1));
       return lzsa_compress_inmem(in, out, inlen, outsize, nFlags, nMinMatchSize, nFormatVersion);
     } 
      #endif
