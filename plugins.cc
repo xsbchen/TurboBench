@@ -985,7 +985,7 @@ struct plugs plugs[] = {
   { P_LZO1z, 	"lzo1z", 			C_LZO, 		"2.09",		"Lzo",					"GPL license",		"http://www.oberhumer.com/opensource/lzo\thttps://github.com/nemequ/lzo",				"999" }, 
   { P_LZO2a, 	"lzo2a", 			C_LZO, 		"2.09",		"Lzo",					"GPL license",		"http://www.oberhumer.com/opensource/lzo\thttps://github.com/nemequ/lzo",				"999" }, 
   { P_LZOMA, 	"lzoma", 			C_LZOMA,	"16-03",	"lzoma",				"GPL license",		"https://github.com/alef78/lzoma", 														"1,2,3,4,5,6,7,8,9" },
-  { P_LZSA, 	"lzsa", 			C_LZSA,		"",	"lzsa",				"",		"https://github.com/emmanuel-marty/lzsa", 																		"9" },
+  { P_LZSA, 	"lzsa", 			C_LZSA,		"",	"lzsa",				"",		    "https://github.com/emmanuel-marty/lzsa", 																	"9/f#cr" },
   { P_LZSSE2,	"lzsse2",   	    C_LZSSE,	"16-04",	"lzsse",				"BSD license",		"https://github.com/ConorStokes/LZSSE",													"1,2,3,4,5,6,7,8,9,12,16,17"}, 
   { P_LZSSE4,	"lzsse4",   	    C_LZSSE,	"16-04",	"lzsse",				"BSD license",		"https://github.com/ConorStokes/LZSSE",													"0,1,2,3,4,5,6,7,8,9,12,16,17"}, 
   { P_LZSSE8,	"lzsse8",   	    C_LZSSE,	"16-04",	"lzsse",				"BSD license",		"https://github.com/ConorStokes/LZSSE",													"0,1,2,3,4,5,6,7,8,9,12,16,17"}, 
@@ -1394,13 +1394,12 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
     case P_LZ4: 
       if(strchr(prm,'M')) { return !lev?LZ4_compress_fast((char *)in, (char *)out, inlen, outsize, 4):(lev<9?LZ4_compress_default((char *)in, (char *)out, inlen, outsize):LZ4_compress_HC((char *)in, (char *)out, inlen, outsize, lev)); }
       else { char *q;
-        #define LZ4_BLOCKSIZEID_DEFAULT 7
-        LZ4F_preferences_t opts = LZ4F_INIT_PREFERENCES;   
+         LZ4F_preferences_t opts = LZ4F_INIT_PREFERENCES;   
                               opts.compressionLevel      = lev;
         if(strchr(prm,'s'))   opts.favorDecSpeed         = 1;
         if(strchr(prm,'f'))   opts.autoFlush             = 1;
-                              opts.frameInfo.blockSizeID = LZ4_BLOCKSIZEID_DEFAULT;
-        if(q=strchr(prm,'B')) opts.frameInfo.blockSizeID = atoi(q+(q[1]=='='?2:1)); if(opts.frameInfo.blockSizeID>7) opts.frameInfo.blockSizeID=7;else if(opts.frameInfo.blockSizeID && opts.frameInfo.blockSizeID<4) opts.frameInfo.blockSizeID=4;
+                              opts.frameInfo.blockSizeID = LZ4F_max4MB;
+        if(q=strchr(prm,'B')) opts.frameInfo.blockSizeID = (LZ4F_blockSizeID_t)atoi(q+(q[1]=='='?2:1)); if(opts.frameInfo.blockSizeID>LZ4F_max4MB) opts.frameInfo.blockSizeID=LZ4F_max4MB;else if(opts.frameInfo.blockSizeID && opts.frameInfo.blockSizeID<LZ4F_default) opts.frameInfo.blockSizeID=LZ4F_default;
         return LZ4F_compressFrame(out, outsize, in, inlen, &opts);
       }
       #endif
@@ -2107,7 +2106,7 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
 
 	  #if C_LZSA
 	case P_LZSA:  { 
-      unsigned nFlags = 0,nFormatVersion=1; 
+      unsigned nFlags = 0; int nFormatVersion=1; 
       if(strchr(prm,'c')) nFlags |= LZSA_FLAG_FAVOR_RATIO;
       if(strchr(prm,'r')) nFlags |= LZSA_FLAG_RAW_BLOCK;
       if(strchr(prm,'f')) nFormatVersion = 2;
