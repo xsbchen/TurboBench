@@ -411,7 +411,8 @@ endif
 
 ifeq ($(LZSA), 1)
 CFLAGS+=-Ilzsa/src -Ilzsa/src/libdivsufsort/include
-OB+=lzsa/src/shrink_inmem.o lzsa/src/expand_inmem.o lzsa/src/shrink_block_v1.o lzsa/src/shrink_block_v2.o lzsa/src/expand_block_v1.o lzsa/src/expand_block_v2.o lzsa/src/expand_context.o lzsa/src/shrink_context.o lzsa/src/matchfinder.o lzsa/src/frame.o
+OB+=lzsa/src/expand_block_v1.o lzsa/src/expand_block_v2.o lzsa/src/expand_context.o lzsa/src/expand_inmem.o lzsa/src/shrink_block_v1.o lzsa/src/shrink_block_v2.o lzsa/src/shrink_inmem.o lzsa/src/shrink_context.o \
+    lzsa/src/matchfinder.o lzsa/src/frame.o lzsa/src/hashmap.o
 ifeq ($(DIVSORT), 1)
 else
 OB+=lzsa/src/libdivsufsort/lib/divsufsort.o lzsa/src/libdivsufsort/lib/sssort.o lzsa/src/libdivsufsort/lib/trsort.o
