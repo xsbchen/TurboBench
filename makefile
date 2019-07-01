@@ -30,6 +30,10 @@ else
 ifeq ($(UNAME),$(filter $(UNAME),Darwin FreeBSD GNU/kFreeBSD Linux NetBSD SunOS))
 LDFLAGS+=-lpthread -lrt 
 CFLAGS=-D_7ZIP_ST 
+UNAMEM := $(shell uname -m)
+ifeq ($(UNAMEM),aarch64)
+NSIMD=1
+endif
 endif
 endif
 
@@ -566,13 +570,13 @@ turbobench: $(OB) turbobench.o
 	$(CXX) $^ $(LDFLAGS) -o turbobench
 #-fopenmp 
 .c.o:
-	$(CC) -O3 $(MARCH) $(CFLAGS) $< -c -o $@  
+	$(CC) -O2 $(MARCH) $(CFLAGS) $< -c -o $@  
 
 .cc.o:
-	$(CXX) -O3 $(MARCH) $(CXXFLAGS)  $< -c -o $@ 
+	$(CXX) -O2 $(MARCH) $(CXXFLAGS)  $< -c -o $@ 
 
 .cpp.o:
-	$(CXX) -O3 $(MARCH) $(CXXFLAGS) $< -c -o $@ 
+	$(CXX) -O2 $(MARCH) $(CXXFLAGS) $< -c -o $@ 
 
 clean:
 	find . -name "turbobench" -type f -delete
