@@ -284,7 +284,11 @@ enum {
  P_DIVBWT,
 #define C_ST         C_LIBBSC //_TRANSFORM
  P_ST,
-#define C_BRC 		 0 // COMP2
+#ifdef BRC
+#define C_BRC 		 COMP2
+#else
+#define C_BRC 		 0
+#endif
  P_BRC,
   // --------- Entropy coders -------------
  #if C_BCM  
