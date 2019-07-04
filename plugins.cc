@@ -233,6 +233,8 @@ enum {
  P_YAPPY,
 #define C_ZLIB		COMP1	
  P_ZLIB, 
+ P_ZRLE, 
+ P_ZLIBH,
 #ifdef ZLIB_ZNG
 #define C_ZLIBNG	COMP1
 //#define C_ZLIB      0      // link conflict with zlib.a
@@ -343,8 +345,6 @@ enum {
  P_TORNADOHF,
 #define C_XPACK		COMP2    
  P_XPACK,
-#define C_ZLIBH		ECODER    
- P_ZLIBH,
 #define C_MYCODEC   COMP2	// Include your codec into TurboBench :search and modify "_MYCODEC" in the following files: plugins.h, plugreg.c. Insert your function calls like mycomp/mydecomp in plugins.cc 
  P_MYCODEC, // User plugin
   #ifdef LZTURBO
@@ -901,9 +901,9 @@ const MarlinDictionary * Marlin_estimate_best_dictionary(const MarlinDictionary 
 #include "vecrc/vector_rc.h"
   #endif  
 
-  #if C_ZLIBH
-#include "zlibh/zlibh.h"
-  #endif
+//  #if C_ZLIBH
+//#include "zlibh/zlibh.h"
+//  #endif
   
   #if C_MYCODEC
 //#include "my_header.h"
@@ -1042,7 +1042,8 @@ struct plugs plugs[] = {
   { P_POLHF,    "polar", 			C_POLHF, 	"10-07",	"Polar Codes",			"GPL license",		"http://www.ezcodesample.com/prefixer/prefixer_article.html",							"" },
   { P_SUB, 		"subotin", 			C_SUBOTIN, 	"2000",		"subotin RC",			"Public Domain",	"http://ezcodesample.com/ralpha/Subbotin.txt",											"" },
   { P_TORNADOHF,"tornado_huff", 	C_TORNADOHF,"0.6a",		"Tornado Huf",			"GPL license",		"http://freearc.org/Research.aspx\thttps://github.com/nemequ/tornado" ,					"" },
-  { P_ZLIBH, 	"zlibh",			C_ZLIBH, 	"1.2.8",	"zlib Huffmann",		"BSD license",		"https://github.com/Cyan4973/FiniteStateEntropy",										"", E_HUF },
+  { P_ZLIBH, 	"zlibh",			C_ZLIB, 	"",	        "zlib Huffmann",		"",					"http://zlib.net\thttps://github.com/madler/zlib",										"8,9,10,11,12,13,14,15,16,32" },
+  { P_ZRLE, 	"zlibrle",			C_ZLIB, 	"",	        "zlib rle",		"",					"http://zlib.net\thttps://github.com/madler/zlib",										"" },
   //---- Encoding ------
   { P_RLES, 	"srle",	    		C_RLE, 	    "", 	"TurboRLE ESC",			"            ",		"https://github.com/powturbo/TurboRLE",  												"0,8,16,32,64" },
   { P_RLET, 	"trle",	    		C_RLE, 	    "", 	"TurboRLE",			    "            ",		"https://github.com/powturbo/TurboRLE",  												"" },
@@ -1844,8 +1845,35 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
     case P_TORNADOHF:     return torhenc(in, inlen, out, outsize); 
 	  #endif
       
-	  #if C_ZLIBH
-    case P_ZLIBH:   return ZLIBH_compress((char* )out, (const char*)in, inlen); 
+	  #if C_ZLIB
+    case P_ZLIBH: { z_stream z; unsigned char *in_ = in+inlen, *ip, *op = out; unsigned iplen; //return ZLIBH_compress((char* )out, (const char*)in, inlen); 
+      for(ip = in; ip != in_; ip += iplen) { iplen = min(in_-ip, lev*1024);
+        memset(&z, 0, sizeof(z));
+        if(deflateInit2(&z, Z_DEFAULT_COMPRESSION, Z_DEFLATED, -15, 8, Z_HUFFMAN_ONLY) == Z_OK) {
+          z.next_in   = ip;
+          z.avail_in  = iplen; 
+          z.next_out  = op+2; 
+          z.avail_out = outsize;
+          if(deflate(&z, Z_FINISH) != Z_STREAM_END) break;
+          unsigned oplen = outsize - z.avail_out; ctou16(op) = oplen; op += 2+oplen;
+          deflateEnd(&z);
+        }
+      } return op-out;
+    }
+	  #endif
+
+	  #if C_ZLIB
+    case P_ZRLE: { z_stream z; memset(&z, 0, sizeof(z));
+      if(deflateInit2(&z, Z_DEFAULT_COMPRESSION, Z_DEFLATED, -15, 8, Z_RLE) == Z_OK) {
+        z.next_in   = in;
+        z.avail_in  = inlen; 
+        z.next_out  = out; 
+        z.avail_out = outsize;
+        if(deflate(&z, Z_FINISH) != Z_STREAM_END) break;
+        deflateEnd(&z);
+      }
+      return outsize - z.avail_out;
+    } 
 	  #endif
 
       #ifdef LZTURBO  
@@ -2383,8 +2411,33 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
     case P_TORNADOHF:    torhdec(in, inlen, out, outlen); break;
       #endif 
 
-	  #if C_ZLIBH		
-    case P_ZLIBH:  return ZLIBH_decompress((char* )out, (const char*)in);
+	  #if C_ZLIB	
+    case P_ZLIBH: { unsigned char *out_=out+outlen,*ip=in,*op; unsigned oplen;//return ZLIBH_decompress((char* )out, (const char*)in);
+      for(op = out; op != out+outlen; op+=oplen) { oplen = min(out_-op,lev*1024);
+        z_stream z; memset(&z, 0, sizeof(z));
+        if(inflateInit2(&z, -15) == Z_OK) {
+          z.avail_in  = ctou16(ip);   ip+=2;
+          z.next_in   = ip;           ip+=z.avail_in;
+          z.next_out  = op; 
+          z.avail_out = outlen;
+          if(inflate(&z, Z_SYNC_FLUSH) != Z_STREAM_END) break; //op += outlen - z.avail_out;
+          inflateEnd(&z);
+        } 
+      }
+    } break;
+	  #endif	
+
+	  #if C_ZLIB		
+    case P_ZRLE: { z_stream z; memset(&z, 0, sizeof(z));
+      if(inflateInit2(&z, -15) == Z_OK) {
+        z.next_in   = in;
+        z.avail_in  = inlen;
+        z.next_out  = out; 
+        z.avail_out = outlen;
+        if(inflate(&z, Z_SYNC_FLUSH) != Z_STREAM_END) break; 
+        inflateEnd(&z);
+      }
+    } break;
 	  #endif	
 
       #ifdef LZTURBO  
