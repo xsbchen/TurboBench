@@ -531,7 +531,7 @@ OB+=FastARI/FastAri.o
 ifeq ($(AVX2),1)
 OB+=rans_static/r32x16b_avx2.o
 endif
-OB+=zlibh/zlibh.o
+#OB+=zlibh/zlibh.o
 #OB+=nibrans/tenc.o nibrans/tdec.o
 OB+=subotin_/subotin.o 
 OB+=fqz0/f_o0.o
