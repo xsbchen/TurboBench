@@ -711,6 +711,8 @@ class Out: public libzpaq::Writer {
 
   #if C_BRC
 #include "Behemoth-Rank-Coding/brc.hpp"
+int vsrc_forwards(unsigned char * src, unsigned char * dst, size_t src_size);
+int vsrc_reverse(unsigned char * src, unsigned char * dst, size_t src_size);
   #endif
 
   #if __cplusplus  
@@ -1068,7 +1070,7 @@ struct plugs plugs[] = {
   //----- Transform -----
   { P_DIVBWT, 	"divbwt",    		C_DIVBWT,    "    ",	"bwt libdivsufsort/libbsc",	"        ",		"https://github.com/y-256/libdivsufsort",  												"" },
   { P_ST, 	    "st",    			C_ST,   	 "    ",	"st  libbsc",			"Apache license",	"https://github.com/IlyaGrebnov/libbsc",  						"3,4,5,6,7,8" },
-  { P_BRC, 	    "brc",    			C_BRC,   	 "    ",	"Behemoth-Rank-Coding",	"",	"https://github.com/loxxous/Behemoth-Rank-Coding",  						"" },
+  { P_BRC, 	    "brc",    			C_BRC,   	 "    ",	"Behemoth-Rank-Coding",	"",	"https://github.com/loxxous/Behemoth-Rank-Coding",  						"0,1" },
 
 //{ P_MYCODEC, 	"mycodec",			C_MYCODEC, 	"0",		"My codec",				"           ",		"",																						"" },
     #ifdef LZTURBO
@@ -1719,7 +1721,9 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
     case P_ST: { memcpy(out+4,in, inlen); *(unsigned *)(out) = bsc_st_encode(out+4, inlen, lev, 0); return inlen+4; }
       #endif	
       #if C_BRC
-    case P_BRC: { struct brc_cxt_s brc_cxt; brc_init_cxt(&brc_cxt, inlen); int rc = brc_encode(&brc_cxt, in, inlen); memcpy(out, brc_cxt.block, brc_cxt.size); outlen = brc_cxt.size; brc_free_cxt(&brc_cxt); return rc?0:outlen; }
+    case P_BRC: 
+      if(lev) { struct brc_cxt_s brc_cxt; brc_init_cxt(&brc_cxt, inlen); int rc = brc_encode(&brc_cxt, in, inlen); memcpy(out, brc_cxt.block, brc_cxt.size); outlen = brc_cxt.size; brc_free_cxt(&brc_cxt); return rc?0:outlen; }
+      else return vsrc_forwards(in, out, inlen);
       #endif
     //------------------------- Entropy Coders -------------------------
       #if C_MEMCPY 
@@ -2289,9 +2293,9 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
       #endif
 
       #if C_BRC
-    case P_BRC: { struct brc_cxt_s brc_cxt; size_t o; brc_init_cxt(&brc_cxt, outlen); brc_cxt.size = inlen; memcpy(brc_cxt.block, in, inlen); brc_decode(&brc_cxt, out, &o); brc_free_cxt(&brc_cxt); return inlen; }
+    case P_BRC: if(lev) { struct brc_cxt_s brc_cxt; size_t o; brc_init_cxt(&brc_cxt, outlen); brc_cxt.size = inlen; memcpy(brc_cxt.block, in, inlen); brc_decode(&brc_cxt, out, &o); brc_free_cxt(&brc_cxt); return inlen; }
+                else return vsrc_reverse(in, out, inlen);
       #endif
-
 	  #if C_FB64
         #ifdef AVX2_ON
 	case P_FB64AVX:      { size_t _outlen = outlen; fast_avx2_base64_decode(out, in,inlen);return inlen; }
