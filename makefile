@@ -571,6 +571,9 @@ ifeq ($(GPL), 1)
 OB+=polar/polar.o fpaqc/fpaqc.o
 endif
 #--------------------------------------------------------------------
+XLIB+=$(HUF) $(ANS) $(LZ)
+OB+=$(ICL) $(XLIB)
+
 turbobench: $(OB) turbobench.o  
 	$(CXX) $^ $(LDFLAGS) -o turbobench
 #-fopenmp 
