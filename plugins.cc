@@ -279,6 +279,12 @@ enum {
  P_RLES,
  P_RLET,
  P_RLEM,
+   #ifdef RLE8
+#define C_RLE8		ENCOD
+   #else
+#define C_RLE8		0
+   #endif
+ P_RLE8,
   //---------- Transform ------------------
 #define C_DIVBWT     C_LIBBSC //_TRANSFORM
  P_DIVBWT,
@@ -715,6 +721,10 @@ int vsrc_forwards(unsigned char * src, unsigned char * dst, size_t src_size);
 int vsrc_reverse(unsigned char * src, unsigned char * dst, size_t src_size);
   #endif
 
+  #if C_RLE8
+#include "rle8/src/rle8.h"
+  #endif
+
   #if __cplusplus  
 extern "C" {
   #endif
@@ -780,6 +790,7 @@ ZEXTERN int ZEXPORT zng_uncompress(unsigned char *dest, size_t *destLen, const u
 #include "TurboRLE/trle.h"
 #include "TurboRLE/ext/mrle.h"
   #endif
+
   #if C_TB64
 #include "TurboBase64/turbob64.h"
   #endif
@@ -1054,6 +1065,7 @@ struct plugs plugs[] = {
   { P_RLES, 	"srle",	    		C_RLE, 	    "", 	"TurboRLE ESC",			"            ",		"https://github.com/powturbo/TurboRLE",  												"0,8,16,32,64" },
   { P_RLET, 	"trle",	    		C_RLE, 	    "", 	"TurboRLE",			    "            ",		"https://github.com/powturbo/TurboRLE",  												"" },
   { P_RLEM, 	"mrle",	    		C_RLE, 	    "", 	"Mespostine RLE",	    "            ",		"https://github.com/powturbo/TurboRLE",  												"" },
+  { P_RLE8, 	"rle8",	    		C_RLE8,     "", 	"8 bit RLE",			"            ",		"https://github.com/rainerzufalldererste/rle8",  										"1,2,3,4/s#" },
   
   { P_FB64AVX,		"fb64_avx2",    C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
   { P_FB64CHROMIUM, "fb64chromium", C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
@@ -1688,6 +1700,16 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
     case P_RLEM:  return mrlec(in, inlen, out);
       #endif 
 
+      #if C_RLE 	 
+    case P_RLE8:  
+      switch(lev) {
+        case 1 : { int subSections = 0; if(q=strchr(prm,'s')) subSections = atoi(q+(q[1]=='='?2:1)); return subSections?rle8m_compress(subSections, in, inlen, out, outsize):rle8_compress(in, inlen, out, outsize); }
+        case 2 : return rle8_compress_only_max_frequency(      in, inlen, out, outsize);
+        case 3 : return rle8_ultra_compress(                   in, inlen, out, outsize);
+        case 4 : return rle8_ultra_compress_only_max_frequency(in, inlen, out, outsize);
+      }
+      #endif 
+
 	  #if C_B64
     case P_B64_AVX2:  { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_AVX2); return outlen; }
     case P_B64_PLAIN: { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_PLAIN); return outlen; }
@@ -2273,7 +2295,18 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
       } break;
     case P_RLET: return trled(in, inlen, out, outlen); 
     case P_RLEM: return mrled(in, out, outlen); 
+      #endif 
+
+      #if C_RLE8
+    case P_RLE8: 
+      switch(lev) {
+        case 1  : { int subSections = 0; char *q; if(q=strchr(prm,'s')) subSections = atoi(q+(q[1]=='='?2:1)); return subSections?rle8m_decompress(in, inlen, out, outlen):rle8_decompress(in, inlen, out, outlen); }
+        case 2  : return rle8_decompress(in, inlen, out, outlen);
+        case 3  :
+        case 4  : return rle8_ultra_decompress(in, inlen, out, outlen);
+      }
       #endif
+
 	  #if C_B64
     case P_B64_AVX2:  { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_AVX2);  return inlen; }
     case P_B64_PLAIN: { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_PLAIN); return inlen; }
