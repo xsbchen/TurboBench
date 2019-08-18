@@ -1700,7 +1700,7 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
     case P_RLEM:  return mrlec(in, inlen, out);
       #endif 
 
-      #if C_RLE 	 
+      #if C_RLE8 	 
     case P_RLE8:  
       switch(lev) {
         case 1 : { int subSections = 0; if(q=strchr(prm,'s')) subSections = atoi(q+(q[1]=='='?2:1)); return subSections?rle8m_compress(subSections, in, inlen, out, outsize):rle8_compress(in, inlen, out, outsize); }
