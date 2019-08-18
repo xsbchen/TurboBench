@@ -524,6 +524,10 @@ else
 OB+=TurboRLE/trlec.o TurboRLE/trled.o 
 endif
 OB+=TurboRLE/ext/mrle.o
+ifeq ($(RLE8),1)
+DEFS+=-DRLE8
+OB+=rle8/src/rle8_cpu.o rle8/src/rle8_ultra_cpu.o
+endif
 #OB+=fastbase64/src/chromiumbase64.o fastbase64/src/quicktimebase64.o fastbase64/src/scalarbase64.o
 ifeq ($(AVX2),1)
 #OB+=fastbase64/src/fastavxbase64.o 
@@ -578,13 +582,13 @@ turbobench: $(OB) turbobench.o
 	$(CXX) $^ $(LDFLAGS) -o turbobench
 #-fopenmp 
 .c.o:
-	$(CC) -O2 $(MARCH) $(CFLAGS) $< -c -o $@  
+	$(CC) -O3 $(MARCH) $(CFLAGS) $< -c -o $@  
 
 .cc.o:
-	$(CXX) -O2 $(MARCH) $(CXXFLAGS)  $< -c -o $@ 
+	$(CXX) -O3 $(MARCH) $(CXXFLAGS)  $< -c -o $@ 
 
 .cpp.o:
-	$(CXX) -O2 $(MARCH) $(CXXFLAGS) $< -c -o $@ 
+	$(CXX) -O3 $(MARCH) $(CXXFLAGS) $< -c -o $@ 
 
 clean:
 	find . -name "turbobench" -type f -delete
