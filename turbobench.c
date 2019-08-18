@@ -213,6 +213,7 @@ enum {
   FMT_HTMLT, 
   FMT_MARKDOWN,    
   FMT_VBULLETIN,  // ex. post to encode.ru
+  FMT_VBULLETIN2, 
   FMT_CSV,
   FMT_TSV,
   FMT_SQUASH 
@@ -269,6 +270,7 @@ void plugsprtv(FILE *f, int fmt) {
       printf("%s\n", "<html><head><meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"><title>TurboBench</title></head><body><pre><ul>"); 
       break;
     case FMT_VBULLETIN:
+    case FMT_VBULLETIN2:
       fprintf(f,"[list]\n"); 
       break;
   }
@@ -281,7 +283,8 @@ void plugsprtv(FILE *f, int fmt) {
 	  codver(gs->id, gs->ver, ver); 
       sprintf(name, "%s v%s", gs->name, ver);
       switch(fmt) {  
-        case FMT_VBULLETIN: 
+         case FMT_VBULLETIN: 
+         case FMT_VBULLETIN2: 
           fprintf(f, "[*][URL=\"%s\"]%s[/URL] %s\n", gs->url, name, gs->lic ); 
           break;
         case FMT_HTML     : 
@@ -297,6 +300,7 @@ void plugsprtv(FILE *f, int fmt) {
 
   switch(fmt) {
     case FMT_VBULLETIN:
+    case FMT_VBULLETIN2:
       fprintf(f,"[/list]\n"); 
       break;
     case FMT_HTML:
@@ -476,6 +480,7 @@ void plugprth(FILE *f, int fmt, char *t) {
       fprintf(f,"%s\n", s ); 
       break;
     case FMT_VBULLETIN:
+    case FMT_VBULLETIN2:
       fprintf(f,"%s\n", s); 
       break;
     case FMT_HTMLT:  
@@ -506,6 +511,9 @@ void plugprtth(FILE *f, int fmt) {
       fprintf(f,"      C Size  ratio%%     C MB/s     D MB/s   Name            File\n"); 
       break;
     case FMT_VBULLETIN:
+      fprintf(f,"[table]C Size|ratio%|C MB/s|D MB/s|Name|File (MB=1.000.0000)\n"); 
+      break;
+    case FMT_VBULLETIN2:
       fprintf(f,"[CODE][B]%s[/B] MB=1.000.0000\n", head); 
       break;
     case FMT_HTMLT:    
@@ -532,6 +540,9 @@ void plugprtth(FILE *f, int fmt) {
 void plugprttf(FILE *f, int fmt) {
   switch(fmt) {
     case FMT_VBULLETIN:
+      fprintf(f,"[/table]\n");
+      break;
+    case FMT_VBULLETIN2:
       fprintf(f,"[/CODE]\n"); 
       break;
     case FMT_HTMLT:    
@@ -589,6 +600,10 @@ void plugprt(struct plug *plug, long long totinlen, char *finame, int fmt, doubl
         fprintf(f,"%12"PRId64"   %5.1f   %8.2f   %8.2f   %-32s %s\n", plug->len, ratio, tc, td, name, finame); 
       break;
     case FMT_VBULLETIN:
+      fprintf(f, "%12"PRId64"|%5.1f|%s%8.2f%s|%s%8.2f%s|%s%-16s%s|%s\n", 
+        plug->len, ratio, c?"[B]":"", tc, c?"[/B]":"",  d?"[B]":"", td, d?"[/B]":"", n?"[B]":"", name, n?"[/B]":"", finame); 
+      break;
+    case FMT_VBULLETIN2:
       fprintf(f, "%12"PRId64"   %5.1f   %s%8.2f%s   %s%8.2f%s   %s%-16s%s%s\n", 
         plug->len, ratio, c?"[B]":"", tc, c?"[/B]":"",  d?"[B]":"", td, d?"[/B]":"", n?"[B]":"", name, n?"[/B]":"", finame); 
       break;
@@ -658,6 +673,10 @@ void plugprtph(FILE *f, int fmt) {
       break;
     case FMT_VBULLETIN:
       fprintf(f,"TurboBench: Speedup %s sheet\n\n", s);
+      fprintf(f,"[table][B]\n"); 
+      break;
+    case FMT_VBULLETIN2:
+      fprintf(f,"TurboBench: Speedup %s sheet\n\n", s);
       fprintf(f,"[CODE][B]\n"); 
     default: 
       fprintf(f,"Name           ");
@@ -666,7 +685,7 @@ void plugprtph(FILE *f, int fmt) {
       if(blknum) 
         fprintf(f, " blknum=%d ", blknum);
       fprintf(f, "\n"); 
-    if(fmt == FMT_VBULLETIN) 
+    if(fmt == FMT_VBULLETIN || fmt == FMT_VBULLETIN2) 
       fprintf(f,"[/B]\n"); 
   }
 }
@@ -901,6 +920,9 @@ int plugprts(struct plug *plug, int k, char *finame, int xstdout, unsigned long 
         fprintf(fo, "</pre>\n"); 
         break;
       case FMT_VBULLETIN:
+        fprintf(fo,"[/table]\n"); 
+        break;
+      case FMT_VBULLETIN2:
         fprintf(fo,"[/CODE]\n"); 
         break;
       case FMT_MARKDOWN :
@@ -1181,7 +1203,7 @@ void usage(char *pgm) {
   fprintf(stderr, " -l#      # = 1 : print all groups/plugins, # = 2 : print all codecs\n");
   fprintf(stderr, " -S#      Plot transfer speed: #=1 Comp        speedup #=2 Decomp speedup #=3 Comp        'MB/s' #=4 Decomp 'MB/s'\n");
   fprintf(stderr, "                               #=4 Comp+Decomp speedup                    #=5 Comp+Decomp 'MB/s'\n");
-  fprintf(stderr, " -p#      #='print format' 1=text 2=html 3=htm 4=markdown 5:vBulletin 6:csv(comma) 7=tsv(tab)\n");
+  fprintf(stderr, " -p#      #='print format' 1=text 2=html 3=htm 4=markdown 5/6:vBulletin 7:csv(comma) 8=tsv(tab)\n");
   fprintf(stderr, " -Q#      # Plot window 0:1920x1080, 1:1600x900, 2:1280x720, 3:800x600 (default=1)\n");
   fprintf(stderr, " -g       -g:no merge w/ old result 'file.tbb', -gg:process w/o output (use for fuzzing)\n");
   fprintf(stderr, " -o       print on standard output\n");
