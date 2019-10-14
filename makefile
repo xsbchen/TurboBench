@@ -548,7 +548,7 @@ OB+=ppmdec/ppmdec.o
 OB+=fpaq0p/fpaq0p_sh.o 
 #OB+=marlin/src/compress.o marlin/src/configuration.o marlin/src/decompress.o marlin/src/dictionary.o marlin/src/marlin.o
 
-OB+=TurboRC/turborcs.o TurboRC/turborcss.o TurboRC/turborcn.o
+#OB+=TurboRC/turborcs.o TurboRC/turborcss.o TurboRC/turborcn.o
 
 ifneq ($(CC), icc)
 OB+=vecrc/vector_rc.o
