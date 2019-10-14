@@ -353,6 +353,8 @@ enum {
  P_POLHF, 
 #define C_TORNADOHF	GPL	 
  P_TORNADOHF,
+#define C_TURBORC   ECODER    
+ P_TURBORC,
 #define C_XPACK		COMP2    
  P_XPACK,
 #define C_MYCODEC   COMP2	// Include your codec into TurboBench :search and modify "_MYCODEC" in the following files: plugins.h, plugreg.c. Insert your function calls like mycomp/mydecomp in plugins.cc 
@@ -655,6 +657,10 @@ class Out: public libzpaq::Writer {
    
   #if C_TORNADO
 #include "tornado_/tormem.h"
+  #endif
+
+  #if C_TURBORC
+#include "TurboRC/turborc.h"
   #endif
 
   #if C_ULZ
@@ -1059,13 +1065,14 @@ struct plugs plugs[] = {
   { P_POLHF,    "polar", 			C_POLHF, 	"10-07",	"Polar Codes",			"GPL license",		"http://www.ezcodesample.com/prefixer/prefixer_article.html",							"" },
   { P_SUB, 		"subotin", 			C_SUBOTIN, 	"2000",		"subotin RC",			"Public Domain",	"http://ezcodesample.com/ralpha/Subbotin.txt",											"" },
   { P_TORNADOHF,"tornado_huff", 	C_TORNADOHF,"0.6a",		"Tornado Huf",			"GPL license",		"http://freearc.org/Research.aspx\thttps://github.com/nemequ/tornado" ,					"" },
+  { P_TURBORC, 	"TurboRC", 			C_TURBORC, 	"",		    "Turbo Range Coder",			"",	"http://github.com/powturbo/TurboRC",											"0,1,2/e" },
   { P_ZLIBH, 	"zlibh",			C_ZLIB, 	"",	        "zlib Huffmann",		"",					"http://zlib.net\thttps://github.com/madler/zlib",										"8,9,10,11,12,13,14,15,16,32" },
   { P_ZRLE, 	"zlibrle",			C_ZLIB, 	"",	        "zlib rle",		"",					"http://zlib.net\thttps://github.com/madler/zlib",										"" },
   //---- Encoding ------
   { P_RLES, 	"srle",	    		C_RLE, 	    "", 	"TurboRLE ESC",			"            ",		"https://github.com/powturbo/TurboRLE",  												"0,8,16,32,64" },
   { P_RLET, 	"trle",	    		C_RLE, 	    "", 	"TurboRLE",			    "            ",		"https://github.com/powturbo/TurboRLE",  												"" },
   { P_RLEM, 	"mrle",	    		C_RLE, 	    "", 	"Mespostine RLE",	    "            ",		"https://github.com/powturbo/TurboRLE",  												"" },
-  { P_RLE8, 	"rle8",	    		C_RLE8,     "", 	"8 bit RLE",			"            ",		"https://github.com/rainerzufalldererste/rle8",  										"1,2,3,4/s#" },
+  { P_RLE8, 	"rle8",	    		C_RLE8,     "", 	"8 bit RLE",			"            ",		"https://github.com/rainerzufalldererste/rle8",  										"1,2,8,16,24,32,48,64/S#s (S:Subsection, s:single)" },
   
   { P_FB64AVX,		"fb64_avx2",    C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
   { P_FB64CHROMIUM, "fb64chromium", C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
@@ -1703,10 +1710,17 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
       #if C_RLE8 	 
     case P_RLE8:  
       switch(lev) {
-        case 1 : { int subSections = 0; if(q=strchr(prm,'s')) subSections = atoi(q+(q[1]=='='?2:1)); return subSections?rle8m_compress(subSections, in, inlen, out, outsize):rle8_compress(in, inlen, out, outsize); }
-        case 2 : return rle8_compress_only_max_frequency(      in, inlen, out, outsize);
-        case 3 : return rle8_ultra_compress(                   in, inlen, out, outsize);
-        case 4 : return rle8_ultra_compress_only_max_frequency(in, inlen, out, outsize);
+        case 1 : { int subSections = 0; if(q=strchr(prm,'S')) subSections = atoi(q+(q[1]=='='?2:1)); 
+          return subSections?rle8m_compress(subSections, in, inlen, out, outsize):(strchr(prm,'s')?rle8_compress_only_max_frequency(in, inlen, out, outsize):rle8_compress(in, inlen, out, outsize));
+        }
+        case 2 : return strchr(prm,'s')?rle8_ultra_compress_only_max_frequency(in, inlen, out, outsize):rle8_ultra_compress(in, inlen, out, outsize);
+
+        case  8 : return strchr(prm,'s')?rle8_extreme_single_compress(in, inlen, out, outlen):rle8_extreme_multi_compress( in, inlen, out, outsize);
+        case 16 : return rle16_extreme_compress(in, inlen, out, outsize);
+        case 24 : return rle24_extreme_compress(in, inlen, out, outsize);
+        case 32 : return rle32_extreme_compress(in, inlen, out, outsize);
+        case 48 : return rle48_extreme_compress(in, inlen, out, outsize);
+        case 64 : return rle64_extreme_compress(in, inlen, out, outsize);
       }
       #endif 
 
@@ -1875,6 +1889,16 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
     case P_TORNADOHF:     return torhenc(in, inlen, out, outsize); 
 	  #endif
       
+      #if C_TURBORC
+    case P_TURBORC: { int ec = 0; if(q=strchr(prm,'e')) ec = atoi(q+(q[1]=='='?2:1));
+      switch(lev) {
+        case 0 : return ec==2?turborcsxenc( in, inlen, out):turborcsenc( in, inlen, out);
+        case 1 : return ec==2?turborcssxenc(in, inlen, out):turborcssenc(in, inlen, out);
+        case 2 : return turborcnenc( in, inlen, out);
+      }
+	}
+      #endif 
+
 	  #if C_ZLIB
     case P_ZLIBH: { z_stream z; unsigned char *in_ = in+inlen, *ip, *op = out; unsigned iplen; //return ZLIBH_compress((char* )out, (const char*)in, inlen); 
       for(ip = in; ip != in_; ip += iplen) { iplen = min(in_-ip, lev*1024);
@@ -2300,11 +2324,15 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
       #if C_RLE8
     case P_RLE8: 
       switch(lev) {
-        case 1  : { int subSections = 0; char *q; if(q=strchr(prm,'s')) subSections = atoi(q+(q[1]=='='?2:1)); return subSections?rle8m_decompress(in, inlen, out, outlen):rle8_decompress(in, inlen, out, outlen); }
-        case 2  : return rle8_decompress(in, inlen, out, outlen);
-        case 3  :
-        case 4  : return rle8_ultra_decompress(in, inlen, out, outlen);
-      }
+        case  1 : { int subSections = 0; char *q; if(q=strchr(prm,'S')) subSections = atoi(q+(q[1]=='='?2:1)); return subSections?rle8m_decompress(in, inlen, out, outlen):rle8_decompress(in, inlen, out, outlen); }
+        case  2 : return    rle8_ultra_decompress(in, inlen, out, outlen);
+        case  8 : return  rle8_extreme_decompress(in, inlen, out, outlen);
+        case 16 : return rle16_extreme_decompress(in, inlen, out, outlen);
+        case 24 : return rle24_extreme_decompress(in, inlen, out, outlen);
+        case 32 : return rle32_extreme_decompress(in, inlen, out, outlen);
+        case 48 : return rle48_extreme_decompress(in, inlen, out, outlen);
+        case 64 : return rle64_extreme_decompress(in, inlen, out, outlen);
+     }
       #endif
 
 	  #if C_B64
@@ -2452,6 +2480,16 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
     case P_TORNADOHF:    torhdec(in, inlen, out, outlen); break;
       #endif 
 
+      #if C_TURBORC
+    case P_TURBORC: { int ec = 0; char *q; if(q=strchr(prm,'e')) ec = atoi(q+(q[1]=='='?2:1));
+      switch(lev) {
+        case 0 : return ec==2?turborcsxdec( in, outlen, out):turborcsdec(in, outlen, out);
+        case 1 : return ec==2?turborcssxdec(in, outlen, out):turborcssdec( in, outlen, out);
+        case 2 : return turborcndec( in, outlen, out);
+      }
+	}
+      #endif 
+	  
 	  #if C_ZLIB	
     case P_ZLIBH: { unsigned char *out_=out+outlen,*ip=in,*op; unsigned oplen;//return ZLIBH_decompress((char* )out, (const char*)in);
       for(op = out; op != out+outlen; op+=oplen) { oplen = min(out_-op,lev*1024);
