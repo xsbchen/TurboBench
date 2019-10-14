@@ -353,7 +353,7 @@ enum {
  P_POLHF, 
 #define C_TORNADOHF	GPL	 
  P_TORNADOHF,
-#define C_TURBORC   ECODER    
+#define C_TURBORC   0 //ECODER    
  P_TURBORC,
 #define C_XPACK		COMP2    
  P_XPACK,
