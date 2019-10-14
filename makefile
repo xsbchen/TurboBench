@@ -413,7 +413,7 @@ endif
 ifeq ($(LZSA), 1)
 CFLAGS+=-Ilzsa/src -Ilzsa/src/libdivsufsort/include
 OB+=lzsa/src/expand_block_v1.o lzsa/src/expand_block_v2.o lzsa/src/expand_context.o lzsa/src/expand_inmem.o lzsa/src/shrink_block_v1.o lzsa/src/shrink_block_v2.o lzsa/src/shrink_inmem.o lzsa/src/shrink_context.o \
-    lzsa/src/matchfinder.o lzsa/src/frame.o lzsa/src/hashmap.o
+    lzsa/src/matchfinder.o lzsa/src/frame.o 
 ifeq ($(DIVSORT), 1)
 else
 OB+=lzsa/src/libdivsufsort/lib/divsufsort.o lzsa/src/libdivsufsort/lib/sssort.o lzsa/src/libdivsufsort/lib/trsort.o
@@ -526,7 +526,7 @@ endif
 OB+=TurboRLE/ext/mrle.o
 ifeq ($(RLE8),1)
 DEFS+=-DRLE8
-OB+=rle8/src/rle8_cpu.o rle8/src/rle8_ultra_cpu.o
+OB+=rle8/src/rle8_cpu.o rle8/src/rle8_ultra_cpu.o rle8/src/rle8_extreme_cpu.o rle8/src/rleX_extreme_cpu.o rle8/src/rle24_extreme_cpu.o rle8/src/rle48_extreme_cpu.o
 endif
 #OB+=fastbase64/src/chromiumbase64.o fastbase64/src/quicktimebase64.o fastbase64/src/scalarbase64.o
 ifeq ($(AVX2),1)
@@ -547,6 +547,8 @@ OB+=ppmdec/ppmdec.o
 #OB+=ans_nania/narans.o 
 OB+=fpaq0p/fpaq0p_sh.o 
 #OB+=marlin/src/compress.o marlin/src/configuration.o marlin/src/decompress.o marlin/src/dictionary.o marlin/src/marlin.o
+
+OB+=TurboRC/turborcs.o TurboRC/turborcss.o TurboRC/turborcn.o
 
 ifneq ($(CC), icc)
 OB+=vecrc/vector_rc.o
