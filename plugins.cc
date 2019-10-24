@@ -251,7 +251,7 @@ enum {
  P_ZSTD,
   // --------- Encoding -------------------
   #ifdef BASE64 
-#define C_B64 		ENCOD
+#define C_B64 		0 //ENCOD
   #else
 #define C_B64 		0
   #endif
@@ -264,15 +264,25 @@ enum {
  P_B64_SSE42,
  P_B64_AVX,
 
+#ifdef BASE64
 #define C_SB64 		0 //ENCOD
  P_SB64SSE,
-#define C_FB64 		0 //ENCOD
- P_FB64AVX,
+#define C_FB64 		ENCOD
+#else
+#define C_FB64 		0
+#endif
  P_FB64CHROMIUM,
+ P_FB64AVX,
+ P_FB64KLOMP,
  P_FB64LINUX,
- P_FB64QUICKTIME,
  P_FB64SCALAR,
-#define C_TB64		0 //ENCOD
+ P_FB64NEON,
+
+#ifdef BASE64
+#define C_TB64		ENCOD
+#else
+#define C_TB64 		0
+#endif
  P_TB64,
  P_TB64S,
 #define C_RLE		ENCOD
@@ -717,10 +727,6 @@ class Out: public libzpaq::Writer {
 #include "../dev/x/beplugi.h"
   #endif  
 //-----------------------------
-  #if C_FB64
-//#include "fastbase64/include/chromiumbase64.h"
-  #endif
-
   #if C_BRC
 #include "Behemoth-Rank-Coding/brc.hpp"
 int vsrc_forwards(unsigned char * src, unsigned char * dst, size_t src_size);
@@ -800,6 +806,7 @@ ZEXTERN int ZEXPORT zng_uncompress(unsigned char *dest, size_t *destLen, const u
   #if C_TB64
 #include "TurboBase64/turbob64.h"
   #endif
+
   #if C_SB64
 //#include "base64simd/encode/lookup.sse.cpp"
 //#include "base64simd/decode/decode.sse.cpp"
@@ -809,22 +816,21 @@ ZEXTERN int ZEXPORT zng_uncompress(unsigned char *dest, size_t *destLen, const u
 #include "base64/include/libbase64.h"
   #endif
 
+  #if C_FB64
+#include "fastbase64/include/chromiumbase64.h"
+#include "fastbase64/include/scalarbase64.h"
+#include "fastbase64/include/linuxbase64.h"
+   #ifdef AVX2_ON
+#include "fastbase64/include/fastavxbase64.h"
+#include "fastbase64/include/klompavxbase64.h"
+   #endif
+#ifdef HAVE_AVX512BW
+#include "fastbase64/include/fastavxbase64.h"
+#endif // HAVE_AVX512BW
+  #endif
+
   #if __cplusplus  
 extern "C" {
-  #endif
-  #if C_FB64
-   #ifdef AVX2_ON
-//#include "fastbase64/include/fastavxbase64.h"
-size_t fast_avx2_base64_decode(char *out, const char *src, size_t len);
-size_t fast_avx2_base64_encode(char* dest, const char* str, size_t len);
-   #endif
-
-//#include "fastbase64/include/chromiumbase64.h"
-size_t chromium_base64_encode(char* dest, const char* str, size_t len);
-size_t chromium_base64_decode(char* dest, const char* src, size_t len);
-#include "fastbase64/include/scalarbase64.h"
-#include "fastbase64/include/quicktimebase64.h"
-#include "fastbase64/include/linuxbase64.h"
   #endif
 
   #if C_LZ4ULTRA
@@ -1077,10 +1083,13 @@ struct plugs plugs[] = {
   { P_FB64AVX,		"fb64_avx2",    C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
   { P_FB64CHROMIUM, "fb64chromium", C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
   { P_FB64LINUX,	"fb64linux",    C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
-  { P_FB64QUICKTIME,"fb64quicktime",C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
+  { P_FB64KLOMP,    "fb64klomp",    C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
   { P_FB64SCALAR,	"fb64scalar",   C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
   { P_TB64,		    "TurboB64",    	C_FB64,		 "    ",	"TurboBase64",			"BSD license",		"https://github.com/powturbo/TurboBase64",  						"" },
   { P_TB64S,	    "TurboB64s",    C_FB64,		 "    ",	"TurboBase64",			"BSD license",		"https://github.com/powturbo/TurboBase64",  						"" },
+    #ifdef __ARM_NEON
+  { P_FB64NEON,		"fb64neon",    C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
+    #endif
 //  { P_SB64SSE,		"base64simd",   C_SB64,		 "    ",	"Base64simd",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
   { P_B64_AVX2,		"b64_avx2",     C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
   { P_B64_PLAIN,	"b64_plain",    C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
@@ -1733,11 +1742,14 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
 
 	  #if C_FB64
         #ifdef AVX2_ON
-	case P_FB64AVX: 	 { size_t outlen = outsize; fast_avx2_base64_encode(  out,   in,inlen);return outlen; }
+	case P_FB64AVX: 	 return fast_avx2_base64_encode(  out,   in,inlen);
+	case P_FB64KLOMP:    { size_t outlen = outsize; klomp_avx2_base64_encode((const char*)in, inlen, out, &outlen); return outlen; }
 	    #endif
+        #ifdef __ARM_NEON 
+    case P_FB64NEON: 
+        #endif
 	case P_FB64CHROMIUM:  return chromium_base64_encode( (char*)out, (const char*)in, inlen);
 	case P_FB64LINUX:     return linux_base64_encode(    (char*)out, (const char*)in, (const char*)(in+inlen));
-	case P_FB64QUICKTIME: return quicktime_base64_encode((char*)out, (const char*)in, inlen);
 	case P_FB64SCALAR:   { size_t outlen = outsize; scalar_base64_encode(   (const char*)in,inlen,(char*)out,&outlen);return outlen; }
 	  #endif
 
@@ -2359,13 +2371,16 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
       #endif
 	  #if C_FB64
         #ifdef AVX2_ON
-	case P_FB64AVX:      { size_t _outlen = outlen; fast_avx2_base64_decode(out, in,inlen);return inlen; }
+	case P_FB64AVX:      fast_avx2_base64_decode(out, in,inlen);return inlen;
+	case P_FB64KLOMP:    { size_t _outlen = outlen; klomp_avx2_base64_decode( (const char *)in, inlen, (char *)out, &_outlen); return inlen; }
 	    #endif
 
 	case P_FB64CHROMIUM:  chromium_base64_decode( (char*)out,(const char*)in,inlen); return inlen;
 	case P_FB64LINUX:     linux_base64_decode(    (char*)out,(const char*)in,(const char*)in+inlen); return inlen;
-	case P_FB64QUICKTIME: quicktime_base64_decode((char*)out,(const char*)in);         return inlen;
 	case P_FB64SCALAR:   { size_t _outlen = outlen; scalar_base64_decode(	 (const char*)in,inlen,(char*)out,&_outlen);return inlen; }
+        #ifdef __ARM_NEON 
+	case P_FB64NEON:      neon_base64_decode(out, in,inlen);return inlen;
+        #endif
 	  #endif
 
 	  #if C_SB64
