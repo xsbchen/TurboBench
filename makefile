@@ -176,7 +176,9 @@ endif
 #------------- 
 # 
 CFLAGS+=$(DDEBUG) -w -std=gnu99 -fpermissive -Wall -Izstd/lib -Izstd/lib/common $(DEFS) -Ilz4/lib -Ilizard/lib -Ibrotli/c/include -Ibrotli/c/enc -Ilibdeflate -Ilibdeflate/common -Ibrieflz/include 
-#CFLAGS+=-Ifastbase64/include -DINLINE=inline 
+ifeq ($(BASE64), 1)
+CFLAGS+=-Ifastbase64/include -DINLINE=inline
+endif
 CXXFLAGS+=$(DDEBUG) -w -fpermissive -Wall -fno-rtti -Ilzham_codec_devel/include -Ilzham_codec_devel/lzhamcomp -Ilzham_codec_devel/lzhamdecomp -D"UINT64_MAX=-1ull" -Ibrotli/c/include -Ibrotli/c/enc -ICSC/src/libcsc -D_7Z_TYPES_ -DLIBBSC_SORT_TRANSFORM_SUPPORT $(DEFS)
 #CXXFLAGS+=-Imarlin/inc
 
@@ -502,7 +504,30 @@ endif
 endif
 #-------------------- Encoding ------------------------
 ifeq ($(NENCOD),0)
+#ifeq ($(BASE64),1)
+#B+=base64/lib/arch/avx/codec.o base64/lib/lib.o base64/lib/arch/generic/codec.o base64/lib/arch/ssse3/codec.o base64/lib/arch/sse41/codec.o base64/lib/arch/sse42/codec.o base64/lib/arch/avx2/codec.o base64/lib/codec_choose.o base64/lib/arch/neon32/codec.o base64/lib/arch/neon64/codec.o
+#OB+=base64/lib/libbase64.o
+#endif
+ifeq ($(LZTURBO),1)
+else
+OB+=TurboRLE/trlec.o TurboRLE/trled.o 
+endif
+OB+=TurboRLE/ext/mrle.o
+ifeq ($(RLE8),1)
+DEFS+=-DRLE8
+OB+=rle8/src/rle8_cpu.o rle8/src/rle8_ultra_cpu.o rle8/src/rle8_extreme_cpu.o rle8/src/rleX_extreme_cpu.o rle8/src/rle24_extreme_cpu.o rle8/src/rle48_extreme_cpu.o
+endif
+
+ifeq ($(BASE64), 1)
+OB+=TurboBase64/turbob64c.o TurboBase64/turbob64d.o
+
+#fastbase64/src/fastavxbase64.o: fastbase64/src/chromiumbase64.c
+#	$(CXX) -O3 $(MARCH) -Ifastbase64/include $< -c -o $@ 
+
 fastbase64/src/fastavxbase64.o: fastbase64/src/fastavxbase64.c
+	$(CXX) -O3 -mavx2 $(MARCH) -Ifastbase64/include $< -c -o $@ 
+
+fastbase64/src/klompavxbase64.o: fastbase64/src/klompavxbase64.c
 	$(CC) -O3 -mavx2 $(MARCH) -Ifastbase64/include $< -c -o $@ 
 
 base64/lib/arch/avx2/codec.o: base64/lib/arch/avx2/codec.c
@@ -514,23 +539,15 @@ base64/lib/arch/sse41/codec.o: base64/lib/arch/sse41/codec.c
 base64/lib/arch/ssse3/codec.o: base64/lib/arch/ssse3/codec.c
 	$(CC) -O3 -mssse3 $(MARCH) $< -c -o $@ 
 
-ifeq ($(BASE64),1)
-#B+=base64/lib/arch/avx/codec.o base64/lib/lib.o base64/lib/arch/generic/codec.o base64/lib/arch/ssse3/codec.o base64/lib/arch/sse41/codec.o base64/lib/arch/sse42/codec.o base64/lib/arch/avx2/codec.o base64/lib/codec_choose.o base64/lib/arch/neon32/codec.o base64/lib/arch/neon64/codec.o
-OB+=base64/lib/libbase64.o
-endif
-#OB+=TurboBase64/turbob64c.o TurboBase64/turbob64d.o
-ifeq ($(LZTURBO),1)
-else
-OB+=TurboRLE/trlec.o TurboRLE/trled.o 
-endif
-OB+=TurboRLE/ext/mrle.o
-ifeq ($(RLE8),1)
-DEFS+=-DRLE8
-OB+=rle8/src/rle8_cpu.o rle8/src/rle8_ultra_cpu.o rle8/src/rle8_extreme_cpu.o rle8/src/rleX_extreme_cpu.o rle8/src/rle24_extreme_cpu.o rle8/src/rle48_extreme_cpu.o
-endif
-#OB+=fastbase64/src/chromiumbase64.o fastbase64/src/quicktimebase64.o fastbase64/src/scalarbase64.o
+
+OB+=fastbase64/src/chromiumbase64.o fastbase64/src/scalarbase64.o
 ifeq ($(AVX2),1)
-#OB+=fastbase64/src/fastavxbase64.o 
+OB+=fastbase64/src/fastavxbase64.o
+OB+=fastbase64/src/klompavxbase64.o
+endif
+ifeq ($(UNAMEM),aarch64)
+OB+=fastbase64/src/neonbase64.o
+endif
 endif
 endif
 #-------------------- Entropy Coder -------------------
