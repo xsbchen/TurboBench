@@ -521,6 +521,12 @@ endif
 ifeq ($(BASE64), 1)
 OB+=TurboBase64/turbob64c.o TurboBase64/turbob64d.o
 
+TurboBase64/turbob64c.o: TurboBase64/turbob64c.c
+	$(CC) -O3 $(MARCH) $< -c -o $@ 
+
+TurboBase64/turbob64d.o: TurboBase64/turbob64d.c
+	$(CC) -O3 $(MARCH) $< -c -o $@ 
+
 #fastbase64/src/fastavxbase64.o: fastbase64/src/chromiumbase64.c
 #	$(CXX) -O3 $(MARCH) -Ifastbase64/include $< -c -o $@ 
 
