@@ -264,13 +264,13 @@ enum {
  P_B64_SSE42,
  P_B64_AVX,
 
-#ifdef BASE64
+  #ifdef BASE64
 #define C_SB64 		0 //ENCOD
  P_SB64SSE,
 #define C_FB64 		ENCOD
-#else
+  #else
 #define C_FB64 		0
-#endif
+  #endif
  P_FB64CHROMIUM,
  P_FB64AVX,
  P_FB64KLOMP,
@@ -278,11 +278,11 @@ enum {
  P_FB64SCALAR,
  P_FB64NEON,
 
-#ifdef BASE64
+  #ifdef BASE64
 #define C_TB64		ENCOD
-#else
+  #else
 #define C_TB64 		0
-#endif
+  #endif
  P_TB64,
  P_TB64S,
 #define C_RLE		ENCOD
