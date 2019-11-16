@@ -251,7 +251,7 @@ enum {
  P_ZSTD,
   // --------- Encoding -------------------
   #ifdef BASE64 
-#define C_B64 		0 //ENCOD
+#define C_B64 		ENCOD
   #else
 #define C_B64 		0
   #endif
