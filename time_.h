@@ -192,6 +192,7 @@ static uint64_t argtol(char *s) {
     case 'm': f = Mb; break;
     case 'g': f = Gb; break;
     case 'b': return 1u << n;
+    case 'B': return n;
 	default:  f = MB;	
   }
   return n*f;
