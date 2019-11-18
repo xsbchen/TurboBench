@@ -251,7 +251,7 @@ enum {
  P_ZSTD,
   // --------- Encoding -------------------
   #ifdef BASE64 
-#define C_B64 		ENCOD
+#define C_B64 		1 //ENCOD
   #else
 #define C_B64 		0
   #endif
@@ -279,7 +279,7 @@ enum {
  P_FB64NEON,
 
   #ifdef BASE64
-#define C_TB64		ENCOD
+#define C_TB64		1 //ENCOD
   #else
 #define C_TB64 		0
   #endif
@@ -1095,6 +1095,7 @@ struct plugs plugs[] = {
   { P_B64_PLAIN,	"b64_plain",    C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
   { P_B64_SSSE3,	"b64_ssse3",    C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
   { P_B64_SSE41,	"b64_sse41",    C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
+  { P_B64_NEON64,	"b64_neon64",   C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
   //----- Transform -----
   { P_DIVBWT, 	"divbwt",    		C_DIVBWT,    "    ",	"bwt libdivsufsort/libbsc",	"        ",		"https://github.com/y-256/libdivsufsort",  												"" },
   { P_ST, 	    "st",    			C_ST,   	 "    ",	"st  libbsc",			"Apache license",	"https://github.com/IlyaGrebnov/libbsc",  						"3,4,5,6,7,8" },
@@ -1734,10 +1735,13 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
       #endif 
 
 	  #if C_B64
-    case P_B64_AVX2:  { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_AVX2); return outlen; }
-    case P_B64_PLAIN: { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_PLAIN); return outlen; }
-    case P_B64_SSSE3: { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_SSSE3); return outlen; } 
-    case P_B64_SSE41: { size_t outlen; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_SSE41); return outlen; }
+    case P_B64_AVX2:   { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_AVX2);  return outlen; }
+    case P_B64_PLAIN:  { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_PLAIN); return outlen; }
+    case P_B64_SSSE3:  { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_SSSE3); return outlen; } 
+    case P_B64_SSE41:  { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_SSE41); return outlen; }
+        #ifdef __ARM_NEON 
+    case P_B64_NEON64: { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_NEON64);      return outlen; }
+	    #endif
 	  #endif
 
 	  #if C_FB64
@@ -1746,7 +1750,7 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
 	case P_FB64KLOMP:    { size_t outlen = outsize; klomp_avx2_base64_encode((const char*)in, inlen, out, &outlen); return outlen; }
 	    #endif
         #ifdef __ARM_NEON 
-    case P_FB64NEON: 
+//    case P_FB64NEON: 
         #endif
 	case P_FB64CHROMIUM:  return chromium_base64_encode( (char*)out, (const char*)in, inlen);
 	case P_FB64LINUX:     return linux_base64_encode(    (char*)out, (const char*)in, (const char*)(in+inlen));
@@ -2348,10 +2352,11 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
       #endif
 
 	  #if C_B64
-    case P_B64_AVX2:  { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_AVX2);  return inlen; }
-    case P_B64_PLAIN: { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_PLAIN); return inlen; }
-    case P_B64_SSSE3: { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_SSSE3); return inlen; } 
-    case P_B64_SSE41: { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_SSE41); return inlen; }
+    case P_B64_AVX2:   { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_AVX2);  return inlen; }
+    case P_B64_PLAIN:  { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_PLAIN); return inlen; }
+    case P_B64_SSSE3:  { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_SSSE3); return inlen; } 
+    case P_B64_SSE41:  { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_SSE41); return inlen; }
+    case P_B64_NEON64: { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_NEON64); return inlen; }
 	  #endif
 
       //------------ Transform -----------------------------------------------------------------------
@@ -2379,7 +2384,7 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
 	case P_FB64LINUX:     linux_base64_decode(    (char*)out,(const char*)in,(const char*)in+inlen); return inlen;
 	case P_FB64SCALAR:   { size_t _outlen = outlen; scalar_base64_decode(	 (const char*)in,inlen,(char*)out,&_outlen);return inlen; }
         #ifdef __ARM_NEON 
-	case P_FB64NEON:      neon_base64_decode(out, in,inlen);return inlen;
+//	case P_FB64NEON:      neon_base64_decode(out, in,inlen);return inlen;
         #endif
 	  #endif
 
