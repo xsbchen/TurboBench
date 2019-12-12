@@ -691,13 +691,13 @@ void plugprtph(FILE *f, int fmt) {
 }
 
 static inline double spmbs(double td, unsigned long long len, int i, unsigned long long totinlen) { 
-  double t = td + len*TM_T/(double)bw[i].bw + blknum*(bw[i].rtt*1000.0); 
+  double t = td + len/(double)bw[i].bw + blknum*(bw[i].rtt*1000.0);
   return TMBS(totinlen,t); 
 }
 
 //static inline double spdup(double td, long long len, int i, long long totinlen) { double t = td + len*TM_T/(double)bw[i].bw + blknum*(bw[i].rtt*1000.0); return ((double)totinlen*TM_T*100.0/t)/(double)bw[i].bw;}
 static inline double spdup(double td, long long len, int i, long long totinlen) { 
-  return (double)totinlen*100.0 / ((double)len + ((td+blknum*bw[i].rtt*1000.0)/TM_T)*(double)bw[i].bw ); 
+  return (double)totinlen*100.0 / ((double)len + ((td+blknum*bw[i].rtt*1000.0))*(double)bw[i].bw ); 
 }
 
 void plugprtp(struct plug *plug, long long totinlen, char *finame, int fmt, int speedup, FILE *f) {
@@ -999,38 +999,41 @@ static int mcpy=0, mode, tincx, fuzz;
 
 int becomp(unsigned char *_in, unsigned _inlen, unsigned char *_out, size_t outsize, unsigned bsize, int id, int lev, char *prm) { 
   unsigned char *op,*oe = _out + outsize;
+  codstart(_inlen, id, lev, prm, 0);
+  TMBEG(tm_Rep);     
+    mempeakinit();                                           
+    unsigned char *in,*ip;																							
+    for(op = _out, in = _in; in < _in+_inlen; ) {
+      unsigned inlen,bs; 
+      if(mode) { 														blknum++;
+        inlen = ctou32(in); in += 4; 
+        ctou32(op) = inlen; op += 4; //vbput32(op, inlen); 
+        if(in+inlen>_in+_inlen) inlen = (_in+_inlen)-in;
+      } else inlen = _inlen;
 
-  TMBEG(tm_rep,tm_Rep);     mempeakinit();                                           
-  unsigned char *in,*ip;																							
-  for(op = _out, in = _in; in < _in+_inlen; ) { 
-    unsigned inlen,bs; 
-    if(mode) { 														blknum++;
-      inlen = ctou32(in); in += 4; 
-      ctou32(op) = inlen; op += 4; //vbput32(op, inlen); 
-      if(in+inlen>_in+_inlen) inlen = (_in+_inlen)-in;
-    } else inlen = _inlen;
-
-    for(ip = in, in += inlen; ip < in; ) { 
-      size_t iplen = in - ip; iplen = min(iplen, bsize);       
-      bs = mode?((min(bsize, iplen) < (1<<16))?2:4):0;
-      int oplen = codcomp(ip, iplen, op+bs, oe-(op+bs), id, lev,prm);
-      if(oplen <= 0 || oplen >= iplen && mcpy) {
-	    if(mcpy) { memcpy(op+bs, ip, iplen); oplen = iplen; }
-	    else if(oplen <= 0) return 0;
-	  }
-      if(bs == 2 && oplen >= (1<<16)) { printf("Output larger than input! Use option '-P'\n"); exit(-1); }
-      if(mode) { bs==2?(ctou16(op) = oplen):(ctou32(op) = oplen); } op += oplen+bs; ip += iplen; 
-      if(op > _out+outsize) 
-	    die("Overflow error %llu, %u in lib=%d\n", outsize, (int)(ptrdiff_t)(op - _out), id);                                                      
+      for(ip = in, in += inlen; ip < in; ) { 
+        size_t iplen = in - ip; iplen = min(iplen, bsize);       
+        bs = mode?((min(bsize, iplen) < (1<<16))?2:4):0;
+        int oplen = codcomp(ip, iplen, op+bs, oe-(op+bs), id, lev,prm);
+        if(oplen <= 0 || oplen >= iplen && mcpy) {
+	      if(mcpy) { memcpy(op+bs, ip, iplen); oplen = iplen; }
+	      else if(oplen <= 0) { op=_out; goto end; }
+	    }
+        if(bs == 2 && oplen >= (1<<16)) { printf("Output larger than input! Use option '-P'\n"); exit(-1); }
+        if(mode) { bs==2?(ctou16(op) = oplen):(ctou32(op) = oplen); } op += oplen+bs; ip += iplen; 
+        if(op > _out+outsize) 
+	      die("Overflow error %llu, %u in lib=%d\n", outsize, (int)(ptrdiff_t)(op - _out), id);                                                      
+      }
     }
-  }
   TMEND(_inlen);	
+  end: codend(_inlen, id, lev, prm, 0);	
   return op - _out;;
 }
 
 int bedecomp(unsigned char *_in, int _inlen, unsigned char *_out, unsigned _outlen, unsigned bsize, int id, int lev, char *prm) { 
   unsigned char *ip;
-  TMBEG(tm_rep2,tm_Rep2);     mempeakinit();
+  codstart(_inlen, id, lev, prm, 1);
+  TMBEG(tm_Rep2);     mempeakinit();
   unsigned char *out,*op;
   for(ip = _in, out = _out; out < _out+_outlen;) {
     unsigned outlen,bs; 
@@ -1051,6 +1054,7 @@ int bedecomp(unsigned char *_in, int _inlen, unsigned char *_out, unsigned _outl
     }
   }
   TMEND(_outlen);
+  codend(_inlen, id, lev, prm, 1);	
   return ip - _in;
 }
 
@@ -1065,6 +1069,48 @@ struct plug plugr[32]; int tid;
 #define BEUSAGE
 #define BEFILE
 #define BENCHSTA
+
+int delim;
+#define PATH_LENMAX 1024
+#define FLENMAX Gb
+
+bebuild(char **files, int argc, int recurse, char *foname, unsigned long long filenmax, int lim) {  
+  FILE *fo = fopen(foname, "wb"); if(!fo) { perror(foname); die("creat error '%s'", foname); }
+  int fno,insize = 100*MB,inlen; char *in = malloc(insize),*finame; 
+  unsigned st_fnum = 0; 
+   unsigned long long st_flen = 0, st_blklen = 0;
+
+  if(!filenmax) filenmax = FLENMAX;        									fprintf(stdout,"number of files=%d. Max. file length=%llu\n", argc, filenmax); fflush(stdout);
+  for(fno = 0; fno < argc; fno++) { 
+    char *finame = files[fno]; 
+    if(finame[0]=='-') continue;
+    FILE *fi = fopen(finame, "rb"); 
+    if(!fi) { perror(finame); die("open error '%s'", finame); exit(0); }	if(verbose>1) fprintf(stdout,"'%s'\n", finame); fflush(stdout); 
+    if((inlen = fread(in, 1, insize, fi))) {			
+      if(ftell(fo) + 4 + inlen > filenmax) 
+        inlen = filenmax - (st_flen+4);	
+      if(delim > 0) {
+        char *p;  
+        for(p = in; p < in+inlen;) {
+          char *q = strchr(p, delim);
+          int   l = q - p;
+          fwrite(&l, 1, 4,fo);												st_fnum++; st_blklen += l; st_flen += l+4;
+          fwrite(p,  1, l,fo);												if(st_flen >= filenmax) break;		        
+          if(!q) break;
+          p = q+1;
+        }
+        exit(0);
+      } else {
+        fwrite(&inlen, 1, 4, fo);											st_fnum++; st_blklen += inlen; st_flen += inlen+4;
+        fwrite(in,1, inlen,fo);												if(ftell(fo) > filenmax) break;	
+      }
+    } 
+    fclose(fi);
+  }
+  																			printf("Number of files=%d, Number of files processed=%d, avglen=%d\n", argc, st_fnum, (int)(st_blklen/st_fnum));
+  fclose(fo);
+}
+
 #endif
 
 #define INOVD 4*1024
@@ -1116,7 +1162,7 @@ unsigned long long plugfile(struct plug *plug, char *finame, unsigned long long 
   if((cmp || tid) && insizem && !(_cpy = _valloc(insizem,3)))
     die("malloc error cpy size=%u\n", insizem);
  
-  codini(insize, plug->id, plug->lev);	
+  codini(insize, plug->id, plug->lev, plug->prm);	
   size_t    inlen;																	
   long long totinlen = 0;
   double    ptc = DBL_MAX, ptd = DBL_MAX;
@@ -1213,6 +1259,7 @@ void usage(char *pgm) {
   fprintf(stderr, "Multiblock:\n");
   fprintf(stderr, " -Moutput concatenate all input files to multiple blocks file output\n");\
   fprintf(stderr, " -m       process multiple blocks per file.\n");
+  fprintf(stderr, " -N       block character delimiter (ex. -N9 for newline, 1 block/line)\n");
   BEUSAGE;
   fprintf(stderr, "ex. ./turbobench enwik9 -eFAST/bzip2/lzma,5,9\n");
   fprintf(stderr, "ex. ./turbobench enwik9 -eFAST/OPTIMAL/bsc,0:e2 -i0\n");
@@ -1256,7 +1303,7 @@ int main(int argc, char* argv[]) {
       { "help", 	0, 0, 'h'},
       { 0, 		    0, 0, 0}
     }; 
-    if((c = getopt_long(argc, argv, "0:1:2:3:4:5:6:7:8:9:A:b:B:C:d:e:E:F:f:gGi:I:j:J:k:K:l:L:mM:N:oOPp:Q:rRs:S:t:T:Uv:V:W:w:X:x:Y:y:Z:z:", long_options, &option_index)) == -1) break;
+    if((c = getopt_long(argc, argv, "0:1:2:3:4:5:6:7:8:9:A:b:B:C:d:De:E:F:f:gGi:I:j:J:k:K:l:L:mM:N:oOPp:Q:rRs:S:t:T:Uv:V:W:w:X:x:Y:y:Z:z:", long_options, &option_index)) == -1) break;
     switch(c) { 
       case 0:
         printf("Option %s", long_options[option_index].name);
@@ -1265,33 +1312,34 @@ int main(int argc, char* argv[]) {
       case 'b': bsize    = argtoi(optarg,Mb); bsizex++; break;
       case 'B': filenmax = argtol(optarg);    		 break;
       case 'd': coddicsize(argtoi(optarg,0));        break; 
+      //case 'D': dict     = optarg;       		     break;
       case 'C': cmp      = atoi(optarg);      		 break;
+      case 'D': rprio    = 0;		 			 	 break;
       case 'e': scmd     = optarg;            		 break;
       case 'F': fac      = strtod(optarg, NULL); 	 break;
       case 'f': fuzz     = atoi(optarg);       		 break;
       case 'g': merge++;		 			 		 break;
       case 'G': plotmcpy++;	 			 		 	 break;
 
-      case 'i': if((tm_rep  = atoi(optarg))<=0) tm_rep =tm_Rep=1; break;
-      case 'I': if((tm_Rep  = atoi(optarg))<=0) tm_rep =tm_Rep=1; break;
-      case 'j': if((tm_rep2 = atoi(optarg))<=0) tm_rep2=tm_Rep2=1; break;
-      case 'J': if((tm_Rep2 = atoi(optarg))<=0) tm_rep2=tm_Rep2=1; break;
-      case 'k': if((tm_Repk = atoi(optarg))<=0) tm_rep=tm_Rep=tm_rep2=tm_Rep2=tm_Repk=1; break;
-      //case 'K': tm_RepkT = argtot(optarg);     		 break;
+      case 'I': if((tm_Rep  = atoi(optarg))<=0) tm_rep=tm_Rep=1; break;
+      case 'J': if((tm_Rep2 = atoi(optarg))<=0) tm_rep=tm_Rep2=1; break;
       case 'L': tm_slp   = atoi(optarg);      		 break;
- 	  case 't': tm_tx    = atoi(optarg)*TM_T; 		 break;
- 	  case 'T': tm_TX    = atoi(optarg)*TM_T; 		 break;
+ 	  case 't': tm_tx    = atoi(optarg); 		 	break;
+ 	  case 'T': tm_TX    = atoi(optarg); 		 	break;
       case 'r': rem      = optarg;		      		 break;
       case 'S': speedup  = atoi(optarg); if(speedup < 0 || speedup > SP_TRANSFER) speedup=SP_TRANSFER; break;
 
       case 'l': xplug    = atoi(optarg);             break;
       case 'm': mode++; 		 			 		 break;
+      case 'N': delim    = atoi(optarg);	 		 break;
       case 'o': xstdout++; 							 break;
       case 'p': fmt      = atoi(optarg);             break;
       case 'P': mcpy++;       		 			     break;	  
       case 'Q': divxy    = atoi(optarg); 
                 if(divxy>3) divxy=3;                 break;
-      case 'D': rprio=0;		 			 		 break;
+        #ifdef LZTURBO
+      case 'R': recurse++;       		 			 break;
+        #endif
       case 's': mininlen = argtoi(optarg,1);    	 break;
       case 'v': verbose  = atoi(optarg);       		 break;
       case 'Y': seg_ans  = argtoi(optarg,1);         break;
@@ -1300,11 +1348,7 @@ int main(int argc, char* argv[]) {
       case 'x': ylog     =  ylog?0:1;                break;
       case 'y': xlog2    = xlog2?0:1;                break;
       case 'z': ylog2    = ylog2?0:1;                break;
-        #ifdef LZTURBO
       case 'M': beb      = optarg; 		 			 break; 
-        #else
-      case 'M': fprintf(stderr, "Option M: only in binary package available"); exit(0);
-        #endif
       BEOPT;
 	  case 'h':
       default: 
@@ -1334,8 +1378,7 @@ int main(int argc, char* argv[]) {
       printfile(argvx[fno], xstdout, fmt, rem);
     exit(0);
   }
-  if((tm_rep|tm_Rep|tm_rep2|tm_Rep2) ==1) 
-    tm_Repk = 1;
+  tm_Repk = 1;
   if(rprio) { 
       #ifdef _WIN32
     SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
@@ -1384,8 +1427,12 @@ int main(int argc, char* argv[]) {
   unsigned k = plugreg(plug, s, 0, bsize, bsizex);
   if(k > 1 && argc == 1 && !strcmp(argvx[0],"stdin")) { printf("multiple codecs not allowed when reading from stdin"); exit(0); }
 
+  if(beb) { bebuild(&argvx[optind], argc-optind, recurse, beb, filenmax, delim); exit(0); } 
   BEINI;
-  if(!filenmax) filenmax = Gb; if(filenmax > 4*GB) filenmax=4*GB;
+
+  if(!filenmax) filenmax = Gb; 
+  if(filenmax > 4ull*GB) filenmax = 4ull*GB;
+
   long long totinlen = 0;  
   int       krep;
   struct    plug *p;
