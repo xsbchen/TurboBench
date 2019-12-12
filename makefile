@@ -504,10 +504,7 @@ endif
 endif
 #-------------------- Encoding ------------------------
 ifeq ($(NENCOD),0)
-ifeq ($(BASE64),1)
-#B+=base64/lib/arch/avx/codec.o base64/lib/lib.o base64/lib/arch/generic/codec.o base64/lib/arch/ssse3/codec.o base64/lib/arch/sse41/codec.o base64/lib/arch/sse42/codec.o base64/lib/arch/avx2/codec.o base64/lib/codec_choose.o base64/lib/arch/neon32/codec.o base64/lib/arch/neon64/codec.o
-OB+=base64/lib/libbase64.o
-endif
+
 ifeq ($(LZTURBO),1)
 else
 OB+=TurboRLE/trlec.o TurboRLE/trled.o 
@@ -517,9 +514,26 @@ ifeq ($(RLE8),1)
 DEFS+=-DRLE8
 OB+=rle8/src/rle8_cpu.o rle8/src/rle8_ultra_cpu.o rle8/src/rle8_extreme_cpu.o rle8/src/rleX_extreme_cpu.o rle8/src/rle24_extreme_cpu.o rle8/src/rle48_extreme_cpu.o
 endif
+endif
 
+#------------------ base64 ------------------------
 ifeq ($(BASE64), 1)
-OB+=TurboBase64/turbob64c.o TurboBase64/turbob64d.o
+B64=1
+FB64=1
+TB64=1
+
+ifeq ($(B64), 1)
+OB+=base64/lib/libbase64.o
+#B+=base64/lib/arch/avx/codec.o base64/lib/lib.o base64/lib/arch/generic/codec.o base64/lib/arch/ssse3/codec.o base64/lib/arch/sse41/codec.o base64/lib/arch/sse42/codec.o base64/lib/arch/avx2/codec.o base64/lib/codec_choose.o base64/lib/arch/neon32/codec.o base64/lib/arch/neon64/codec.o
+endif
+
+ifeq ($(TB64), 1)
+ifeq ($(UNAMEM), aarch64)
+MSSE=-DUSE_SSE
+else
+MSSE=-mssse3 -DUSE_SSE -DUSE_AVX -DUSE_AVX2
+OB+=TurboBase64/turbob64avx.o TurboBase64/turbob64avx2.o
+endif
 
 TurboBase64/turbob64c.o: TurboBase64/turbob64c.c
 	$(CC) -O3 $(MARCH) -fstrict-aliasing -falign-loops $< -c -o $@ 
@@ -527,9 +541,19 @@ TurboBase64/turbob64c.o: TurboBase64/turbob64c.c
 TurboBase64/turbob64d.o: TurboBase64/turbob64d.c
 	$(CC) -O3 $(MARCH) -fstrict-aliasing -falign-loops $< -c -o $@ 
 
-#fastbase64/src/fastavxbase64.o: fastbase64/src/chromiumbase64.c
-#	$(CXX) -O3 $(MARCH) -Ifastbase64/include $< -c -o $@ 
+TurboBase64/turbob64avx2.o: TurboBase64/turbob64avx2.c
+	$(CC) -O3 $(MARCH) -march=haswell -fstrict-aliasing -falign-loops $< -c -o $@ 
 
+TurboBase64/turbob64sse.o: TurboBase64/turbob64sse.c
+	$(CC) -O3 $(MARCH) $(MSSE)  -fstrict-aliasing -falign-loops -falign-loops $< -c -o $@ 
+
+TurboBase64/turbob64avx.o: TurboBase64/turbob64sse.c
+	$(CC) -O3 $(MARCH) -march=corei7-avx -mtune=corei7-avx -mno-aes -fstrict-aliasing -falign-loops $< -c -o TurboBase64/turbob64avx.o 
+
+OB+=TurboBase64/turbob64c.o TurboBase64/turbob64d.o TurboBase64/turbob64sse.o 
+endif
+
+ifeq ($(FB64), 1)
 fastbase64/src/fastavxbase64.o: fastbase64/src/fastavxbase64.c
 	$(CXX) -O3 -mavx2 $(MARCH) -Ifastbase64/include $< -c -o $@ 
 
@@ -545,16 +569,16 @@ base64/lib/arch/sse41/codec.o: base64/lib/arch/sse41/codec.c
 base64/lib/arch/ssse3/codec.o: base64/lib/arch/ssse3/codec.c
 	$(CC) -O3 -mssse3 $(MARCH) $< -c -o $@ 
 
-
-OB+=fastbase64/src/chromiumbase64.o fastbase64/src/scalarbase64.o
+OB+=fastbase64/src/scalarbase64.o fastbase64/src/chromiumbase64.o 
 ifeq ($(AVX2),1)
 OB+=fastbase64/src/fastavxbase64.o
 OB+=fastbase64/src/klompavxbase64.o
-endif
-ifeq ($(UNAMEM),aarch64)
+endif#
+ifeq ($(UNAMEM), aarch64)
 OB+=fastbase64/src/neonbase64.o
 endif
 endif
+
 endif
 #-------------------- Entropy Coder -------------------
 ifeq ($(NECODER), 0)
