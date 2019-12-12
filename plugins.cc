@@ -255,14 +255,14 @@ enum {
   #else
 #define C_B64 		0
   #endif
- P_B64_AVX2,
- P_B64_NEON32,
- P_B64_NEON64,
  P_B64_PLAIN,
  P_B64_SSSE3,
  P_B64_SSE41,
  P_B64_SSE42,
  P_B64_AVX,
+ P_B64_AVX2,
+ P_B64_NEON32,
+ P_B64_NEON64,
 
   #ifdef BASE64
 #define C_SB64 		0 //ENCOD
@@ -272,10 +272,10 @@ enum {
 #define C_FB64 		0
   #endif
  P_FB64CHROMIUM,
- P_FB64AVX,
+ P_FB64AVX2,
  P_FB64KLOMP,
  P_FB64LINUX,
- P_FB64SCALAR,
+ P_FB64PLAIN,
  P_FB64NEON,
 
   #ifdef BASE64
@@ -285,6 +285,11 @@ enum {
   #endif
  P_TB64,
  P_TB64S,
+ P_TB64X,
+ P_TB64NEON,
+ P_TB64SSE,
+ P_TB64AVX,
+ P_TB64AVX2,
 #define C_RLE		ENCOD
  P_RLES,
  P_RLET,
@@ -405,6 +410,29 @@ enum {
 #include <time.h>
 #include "conf.h"
 #include "plugins.h"
+
+  #if C_ZSTD
+#define ZSTD_STATIC_LINKING_ONLY
+#include "zstd/lib/zstd.h"
+#include "zstd/examples/common.h"
+
+static ZSTD_CDict* createCDict_orDie(const char* dictFileName, int cLevel) {
+  size_t dictSize;
+  void* const dictBuffer = mallocAndLoadFile_orDie(dictFileName, &dictSize);
+  ZSTD_CDict* const cdict = ZSTD_createCDict(dictBuffer, dictSize, cLevel);
+  free(dictBuffer);
+  return cdict;
+}
+
+
+static ZSTD_DDict* createDDict_orDie(const char* dictFileName) {
+  size_t dictSize;
+  void* const dictBuffer = mallocAndLoadFile_orDie(dictFileName, &dictSize);
+  ZSTD_DDict* const ddict = ZSTD_createDDict(dictBuffer, dictSize);
+  free(dictBuffer);
+  return ddict;
+}
+  #endif
 
   #if C_AOM
 #include "aom_/aom.h"
@@ -718,11 +746,6 @@ class Out: public libzpaq::Writer {
 #include "libzling_/libzling_utils_mem.h"
   #endif  
 
-  #if C_ZSTD
-#define ZSTD_STATIC_LINKING_ONLY
-#include "zstd/lib/zstd.h"
-  #endif
-
   #ifdef LZTURBO
 #include "../dev/x/beplugi.h"
   #endif  
@@ -828,7 +851,9 @@ ZEXTERN int ZEXPORT zng_uncompress(unsigned char *dest, size_t *destLen, const u
 #include "fastbase64/include/fastavxbase64.h"
 #endif // HAVE_AVX512BW
   #endif
-
+  #ifdef __ARM_NEON
+int neon_base64_decode(char *out, const char *src, size_t srclen);
+  #endif
   #if __cplusplus  
 extern "C" {
   #endif
@@ -1079,23 +1104,30 @@ struct plugs plugs[] = {
   { P_RLET, 	"trle",	    		C_RLE, 	    "", 	"TurboRLE",			    "            ",		"https://github.com/powturbo/TurboRLE",  												"" },
   { P_RLEM, 	"mrle",	    		C_RLE, 	    "", 	"Mespostine RLE",	    "            ",		"https://github.com/powturbo/TurboRLE",  												"" },
   { P_RLE8, 	"rle8",	    		C_RLE8,     "", 	"8 bit RLE",			"            ",		"https://github.com/rainerzufalldererste/rle8",  										"1,2,8,16,24,32,48,64/S#s (S:Subsection, s:single)" },
+    #ifdef BASE64
+  { P_B64_PLAIN,	"b64plain",    C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
+  { P_B64_SSSE3,	"b64ssse3",    C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
+  { P_B64_SSE41,	"b64sse41",    C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
+  { P_B64_AVX,		"b64avx",      C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
+  { P_B64_AVX2,		"b64avx2",     C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
+  { P_B64_NEON64,	"b64neon64",   C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
   
-  { P_FB64AVX,		"fb64_avx2",    C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
   { P_FB64CHROMIUM, "fb64chromium", C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
   { P_FB64LINUX,	"fb64linux",    C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
+  { P_FB64PLAIN,	"fb64plain",    C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
+  { P_FB64AVX2,		"fb64avx2",     C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
+  { P_FB64NEON,		"fb64neon",     C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
   { P_FB64KLOMP,    "fb64klomp",    C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
-  { P_FB64SCALAR,	"fb64scalar",   C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
-  { P_TB64,		    "TurboB64",    	C_FB64,		 "    ",	"TurboBase64",			"BSD license",		"https://github.com/powturbo/TurboBase64",  						"" },
-  { P_TB64S,	    "TurboB64s",    C_FB64,		 "    ",	"TurboBase64",			"BSD license",		"https://github.com/powturbo/TurboBase64",  						"" },
-    #ifdef __ARM_NEON
-  { P_FB64NEON,		"fb64neon",    C_FB64,		 "    ",	"FastBase64",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
-    #endif
+
+  { P_TB64,		    "TB64",    		C_TB64,		 "    ",	"TurboBase64",			"BSD license",		"https://github.com/powturbo/TurboBase64",  					"0" },
+  { P_TB64S,	    "TB64s",    	C_TB64,		 "    ",	"TurboBase64",			"BSD license",		"https://github.com/powturbo/TurboBase64",  					"" },
+  { P_TB64X,		"TB64x",   		C_TB64,		 "    ",	"TurboBase64",			"BSD license",		"https://github.com/powturbo/TurboBase64",  					"" },
+  { P_TB64SSE,	    "TB64sse",  	C_TB64,		 "    ",	"TurboBase64",			"BSD license",		"https://github.com/powturbo/TurboBase64",  					"" },
+  { P_TB64AVX,	    "TB64avx",  	C_TB64,		 "    ",	"TurboBase64",			"BSD license",		"https://github.com/powturbo/TurboBase64",  					"" },
+  { P_TB64AVX2,	    "TB64avx2", 	C_TB64,		 "    ",	"TurboBase64",			"BSD license",		"https://github.com/powturbo/TurboBase64",  					"" },
+  { P_TB64NEON,	    "TB64neon", 	C_TB64,		 "    ",	"TurboBase64",			"BSD license",		"https://github.com/powturbo/TurboBase64",  					"" },
 //  { P_SB64SSE,		"base64simd",   C_SB64,		 "    ",	"Base64simd",			"BSD license",		"https://github.com/lemire/fastbase64",  						"" },
-  { P_B64_AVX2,		"b64_avx2",     C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
-  { P_B64_PLAIN,	"b64_plain",    C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
-  { P_B64_SSSE3,	"b64_ssse3",    C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
-  { P_B64_SSE41,	"b64_sse41",    C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
-  { P_B64_NEON64,	"b64_neon64",   C_B64,		 "    ",	"Base64",				"BSD license",		"https://github.com/aklomp/base64",  						"" },
+    #endif
   //----- Transform -----
   { P_DIVBWT, 	"divbwt",    		C_DIVBWT,    "    ",	"bwt libdivsufsort/libbsc",	"        ",		"https://github.com/y-256/libdivsufsort",  												"" },
   { P_ST, 	    "st",    			C_ST,   	 "    ",	"st  libbsc",			"Apache license",	"https://github.com/IlyaGrebnov/libbsc",  						"3,4,5,6,7,8" },
@@ -1148,12 +1180,17 @@ NOINLINE void libmemcpy(unsigned char *dst, unsigned char *src, int len) {
 static int dicsize;
 int coddicsize(int _dicsize) { dicsize = _dicsize; }	
 
+  #if C_ZSTD
+static ZSTD_CDict *cdictPtr;
+static ZSTD_DDict *ddictPtr;
+  #endif
+
 static char _workmem[1<<16],*workmem=_workmem;
 static int state_size,dstate_size;
 static size_t workmemsize;
 
-int codini(size_t insize, int codec, int lev) {
-  workmemsize = 0;
+int codini(size_t insize, int codec, int lev, char *prm) {
+  workmemsize = 0;  
 
   switch(codec) {
       #if C_C_BLOSC2
@@ -1240,6 +1277,35 @@ int codini(size_t insize, int codec, int lev) {
   }
   return 0;
 }  
+
+int codstart(size_t insize, int codec, int lev, char *prm, int mode) { 
+  switch(codec) {
+      #if C_ZSTD
+    case P_ZSTD: 
+      if(strchr(prm, 'D')) {
+        if(mode) { if(!ddictPtr) { char *q; ddictPtr = NULL; if(q = strchr(prm,'D')) { q=q+(q[1]=='='?2:1);  if(!(ddictPtr = createDDict_orDie(q     ))) die("zstd:createDDict '%s' failed\n", q); } } }
+        else     { if(!cdictPtr) { char *q; cdictPtr = NULL; if(q = strchr(prm,'D')) { q=q+(q[1]=='='?2:1);  if(!(cdictPtr = createCDict_orDie(q, lev))) die("zstd:createCDict '%s' failed\n", q); } } }
+      }
+      break;
+      #endif
+    default:;
+  }
+  return 0;
+}
+
+int codend(size_t insize, int codec, int lev, char *prm, int mode) {
+  switch(codec) {
+      #if C_ZSTD
+    case P_ZSTD:
+      //if(strchr(prm, 'D')) {
+        if(cdictPtr) { ZSTD_freeCDict(cdictPtr); cdictPtr = NULL; }
+        if(ddictPtr) { ZSTD_freeDDict(ddictPtr); ddictPtr = NULL; }
+      //}
+      break;
+      #endif
+  }
+  return 0;
+}
 
 void codexit(int codec) { 
   if(workmem != _workmem) {
@@ -1693,9 +1759,9 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
 
 	  #if C_ZSTD
     case P_ZSTD: { ZSTD_CCtx *ctx = ZSTD_createCCtx(); ZSTD_parameters p = ZSTD_getParams(lev, inlen, 0); 									
-      if(dsize) { int windowLog = bsr32(dsize)-powof2(dsize); ZSTD_CCtx_setParameter(ctx, ZSTD_c_windowLog, windowLog); }
-      unsigned rc = ZSTD_compress_advanced(ctx, out, outsize, in, inlen, NULL, 0, p);
-      ZSTD_freeCCtx(ctx); 
+      if(dsize) { int windowLog = bsr32(dsize)-powof2(dsize); ZSTD_CCtx_setParameter(ctx, ZSTD_c_windowLog, windowLog); } 
+      unsigned rc; if(strchr(prm, 'D')) rc = ZSTD_compress_usingCDict(ctx, out, outsize, in, inlen, cdictPtr); else rc = ZSTD_compress_advanced(ctx, out, outsize, in, inlen, NULL, 0, p);
+      ZSTD_freeCCtx(ctx);   
       return rc; 
 	}
       #endif   
@@ -1735,10 +1801,11 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
       #endif 
 
 	  #if C_B64
-    case P_B64_AVX2:   { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_AVX2);  return outlen; }
     case P_B64_PLAIN:  { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_PLAIN); return outlen; }
     case P_B64_SSSE3:  { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_SSSE3); return outlen; } 
     case P_B64_SSE41:  { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_SSE41); return outlen; }
+    case P_B64_AVX:    { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_AVX); return outlen; }
+    case P_B64_AVX2:   { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_AVX2);  return outlen; }
         #ifdef __ARM_NEON 
     case P_B64_NEON64: { size_t outlen=0; base64_encode(in, inlen, out, &outlen, BASE64_FORCE_NEON64);      return outlen; }
 	    #endif
@@ -1746,24 +1813,34 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
 
 	  #if C_FB64
         #ifdef AVX2_ON
-	case P_FB64AVX: 	 return fast_avx2_base64_encode(  out,   in,inlen);
+	case P_FB64AVX2: 	 return fast_avx2_base64_encode(  out,   in,inlen);
 	case P_FB64KLOMP:    { size_t outlen = outsize; klomp_avx2_base64_encode((const char*)in, inlen, out, &outlen); return outlen; }
 	    #endif
         #ifdef __ARM_NEON 
-//    case P_FB64NEON: 
+    case P_FB64NEON: 
         #endif
 	case P_FB64CHROMIUM:  return chromium_base64_encode( (char*)out, (const char*)in, inlen);
 	case P_FB64LINUX:     return linux_base64_encode(    (char*)out, (const char*)in, (const char*)(in+inlen));
-	case P_FB64SCALAR:   { size_t outlen = outsize; scalar_base64_encode(   (const char*)in,inlen,(char*)out,&outlen);return outlen; }
+	case P_FB64PLAIN:   { size_t outlen = outsize; scalar_base64_encode(   (const char*)in,inlen,(char*)out,&outlen);return outlen; }
 	  #endif
 
 	  #if C_SB64
 	case P_SB64SSE:  base64::sse::encode(base64::sse::lookup_naive, in, inlen, out); return ((inlen+2)/3)*4;
 	  #endif
 
-	  #if C_TB64 
-	case P_TB64:  return turbob64enc(in, inlen, out); 
-	case P_TB64S: return turbob64encs(in, inlen, out); 
+	  #if C_TB64
+	case P_TB64:    { int u; if(q=strchr(prm,'q')) cpuini(u=atoi(q+(q[1]=='='?2:1))); return tb64enc(in, inlen, out); }
+	case P_TB64S:   return tb64senc(  in, inlen, out); 
+	case P_TB64X:   return tb64xenc(  in, inlen, out); 
+        #ifdef __ARM_NEON
+    case P_TB64NEON: 
+        #else
+	case P_TB64AVX: return tb64avxenc(in, inlen, out); 
+	      #ifdef AVX2_ON
+	case P_TB64AVX2: return tb64avx2enc(in, inlen, out); 
+	      #endif
+        #endif
+	case P_TB64SSE: return tb64sseenc(in, inlen, out);        
      #endif
 
     //------------------------- Transform -----------------------------
@@ -2321,7 +2398,15 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
       #endif
 
       #if C_ZSTD
-    case P_ZSTD: ZSTD_decompress( out, outlen, in, inlen); break;
+    case P_ZSTD: if(strchr(prm,'D')) {
+                   unsigned const expectedDictID = ZSTD_getDictID_fromDDict(ddictPtr);
+                   unsigned const actualDictID   = ZSTD_getDictID_fromFrame(in, inlen);
+                   if(actualDictID != expectedDictID) { printf("ZSTD: DictID mismatch: expected %u got %u", expectedDictID, actualDictID); return 0; }
+                   ZSTD_DCtx *ctx = ZSTD_createDCtx();
+                   inlen = ZSTD_decompress_usingDDict(ctx, out, outlen, in, inlen, ddictPtr);
+                   ZSTD_freeDCtx(ctx);   
+                } else ZSTD_decompress( out, outlen, in, inlen);
+      break;
       #endif
       //------------ Encoding -----------------------------------------------------------------------
       #if C_RLE
@@ -2352,17 +2437,28 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
       #endif
 
 	  #if C_B64
-    case P_B64_AVX2:   { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_AVX2);  return inlen; }
-    case P_B64_PLAIN:  { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_PLAIN); return inlen; }
-    case P_B64_SSSE3:  { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_SSSE3); return inlen; } 
-    case P_B64_SSE41:  { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_SSE41); return inlen; }
+    case P_B64_PLAIN:  { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_PLAIN);  return inlen; }
+    case P_B64_SSSE3:  { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_SSSE3);  return inlen; } 
+    case P_B64_SSE41:  { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_SSE41);  return inlen; }
+    case P_B64_AVX:    { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_AVX);    return inlen; }
+    case P_B64_AVX2:   { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_AVX2);   return inlen; }
     case P_B64_NEON64: { size_t outlen; base64_decode(in, inlen, out, &outlen, BASE64_FORCE_NEON64); return inlen; }
 	  #endif
 
       //------------ Transform -----------------------------------------------------------------------
 	  #if C_TB64 
-	case P_TB64: return turbob64dec(in, inlen, out);
-	case P_TB64S: return turbob64decs(in, inlen, out); 
+	case P_TB64:    return tb64dec(     in, inlen, out);
+	case P_TB64S:   return tb64sdec(    in, inlen, out); 
+	case P_TB64X:   return tb64xdec(    in, inlen, out); 
+        #ifdef __ARM_NEON
+    case P_TB64NEON:  
+        #else
+    case P_TB64AVX: return tb64avxdec(  in, inlen, out);
+	      #ifdef AVX2_ON
+    case P_TB64AVX2: return tb64avx2dec(in, inlen, out);
+	      #endif
+        #endif
+    case P_TB64SSE: return tb64ssedec(  in, inlen, out);
       #endif
 
       #if C_DIVBWT
@@ -2376,15 +2472,15 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
       #endif
 	  #if C_FB64
         #ifdef AVX2_ON
-	case P_FB64AVX:      fast_avx2_base64_decode(out, in,inlen);return inlen;
+	case P_FB64AVX2:      fast_avx2_base64_decode(out, in,inlen);return inlen;
 	case P_FB64KLOMP:    { size_t _outlen = outlen; klomp_avx2_base64_decode( (const char *)in, inlen, (char *)out, &_outlen); return inlen; }
 	    #endif
 
 	case P_FB64CHROMIUM:  chromium_base64_decode( (char*)out,(const char*)in,inlen); return inlen;
 	case P_FB64LINUX:     linux_base64_decode(    (char*)out,(const char*)in,(const char*)in+inlen); return inlen;
-	case P_FB64SCALAR:   { size_t _outlen = outlen; scalar_base64_decode(	 (const char*)in,inlen,(char*)out,&_outlen);return inlen; }
+	case P_FB64PLAIN:   { size_t _outlen = outlen; scalar_base64_decode(	 (const char*)in,inlen,(char*)out,&_outlen);return inlen; }
         #ifdef __ARM_NEON 
-//	case P_FB64NEON:      neon_base64_decode(out, in,inlen);return inlen;
+	case P_FB64NEON:      neon_base64_decode(out, in,inlen);return inlen;
         #endif
 	  #endif
 
