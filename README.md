@@ -204,6 +204,7 @@ Compressors with versions 16.08.2016 <br>
  - [FastAri v15-10](https://github.com/davidcatt/FastARI)
  - [AOMedia AV1 entropy coder](https://aomedia.googlesource.com/aom/+/master/aom_dsp/)
  - [Daala entropy coder](https://github.com/xiph/daala)
+ - [Turbo Range Coder](https://github.com/powturbo/Turbo-Range-Coder) 
 
 ###### bytewise range coder
  - [TurboAC v1.3](https://sites.google.com/site/powturbo)
@@ -245,5 +246,5 @@ Compressors with versions 16.08.2016 <br>
  - [bwt:libdivsufsort](https://github.com/y-256/libdivsufsort)
  - [st: bsc schindler transform](https://github.com/IlyaGrebnov/libbsc)
 
-Last update: 28 Jun 2019
+Last update: 25 Dec 2019
 
