@@ -698,7 +698,7 @@ class Out: public libzpaq::Writer {
   #endif
 
   #if C_TURBORC
-#include "TurboRC/turborc.h"
+#include "Turbo-Range-Coder/turborc.h"
   #endif
 
   #if C_ULZ
