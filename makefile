@@ -596,7 +596,7 @@ OB+=fpaq0p/fpaq0p_sh.o
 #OB+=marlin/src/compress.o marlin/src/configuration.o marlin/src/decompress.o marlin/src/dictionary.o marlin/src/marlin.o
 
 OB+=Turbo-Range-Coder/turborcs.o Turbo-Range-Coder/turborcss.o 
-#TurboRC/turborcn.o
+#Turbo-Range-Coder/turborcn.o
 
 ifneq ($(CC), icc)
 OB+=vecrc/vector_rc.o
