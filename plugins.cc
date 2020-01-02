@@ -1096,7 +1096,7 @@ struct plugs plugs[] = {
   { P_POLHF,    "polar", 			C_POLHF, 	"10-07",	"Polar Codes",			"GPL license",		"http://www.ezcodesample.com/prefixer/prefixer_article.html",							"" },
   { P_SUB, 		"subotin", 			C_SUBOTIN, 	"2000",		"subotin RC",			"Public Domain",	"http://ezcodesample.com/ralpha/Subbotin.txt",											"" },
   { P_TORNADOHF,"tornado_huff", 	C_TORNADOHF,"0.6a",		"Tornado Huf",			"GPL license",		"http://freearc.org/Research.aspx\thttps://github.com/nemequ/tornado" ,					"" },
-  { P_TURBORC, 	"TurboRC", 			C_TURBORC, 	"",		    "Turbo Range Coder",			"",	"http://github.com/powturbo/Turbo-Range-Coder",											"0,1,2,3" },
+  { P_TURBORC, 	"TurboRC", 			C_TURBORC, 	"",		    "Turbo Range Coder",			"",	"http://github.com/powturbo/Turbo-Range-Coder",											"0,1,2,3,4,5,6" },
   { P_ZLIBH, 	"zlibh",			C_ZLIB, 	"",	        "zlib Huffmann",		"",					"http://zlib.net\thttps://github.com/madler/zlib",										"8,9,10,11,12,13,14,15,16,32" },
   { P_ZRLE, 	"zlibrle",			C_ZLIB, 	"",	        "zlib rle",		"",					"http://zlib.net\thttps://github.com/madler/zlib",										"" },
   //---- Encoding ------
@@ -1985,11 +1985,14 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
       #if C_TURBORC
     case P_TURBORC: { //int ec = 0; if(q=strchr(prm,'e')) ec = atoi(q+(q[1]=='='?2:1));
       switch(lev) {
-        case 0 : return turborcsenc(  in, inlen, out);
-        case 1 : return turborcsxenc( in, inlen, out);
-        case 2 : return turborcssenc( in, inlen, out);
-        case 3 : return turborcssxenc(in, inlen, out);
-//      case 2 : return turborcnenc( in, inlen, out);
+        case 0 : return trcsenc(   in, inlen, out);
+        case 1 : return trcsxenc(  in, inlen, out);
+        case 2 : return trcssenc(  in, inlen, out);
+        case 3 : return trcssxenc( in, inlen, out);
+        case 4 : return trcsgenc8( in, inlen, out);
+        case 5 : return trcsgenc16(in, inlen, out);
+        case 6 : return trcsgenc32(in, inlen, out);
+//      case 2 : return trcnenc( in, inlen, out);
       }
 	}
       #endif 
@@ -2601,11 +2604,14 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
       #if C_TURBORC
     case P_TURBORC: { //int ec = 0; char *q; if(q=strchr(prm,'e')) ec = atoi(q+(q[1]=='='?2:1));
       switch(lev) {
-        case 0 : return turborcsdec(  in, outlen, out);
-        case 1 : return turborcsxdec( in, outlen, out);
-        case 2 : return turborcssdec( in, outlen, out);
-        case 3 : return turborcssxdec(in, outlen, out);
-//        case 2 : return turborcndec( in, outlen, out);
+        case 0 : return trcsdec(   in, outlen, out);
+        case 1 : return trcsxdec(  in, outlen, out);
+        case 2 : return trcssdec(  in, outlen, out);
+        case 3 : return trcssxdec( in, outlen, out);
+        case 4 : return trcsgdec8( in, outlen, out);
+        case 5 : return trcsgdec16(in, outlen, out);
+        case 6 : return trcsgdec32(in, outlen, out);
+//        case 2 : return trcndec( in, outlen, out);
       }
 	}
       #endif 
