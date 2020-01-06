@@ -1096,7 +1096,7 @@ struct plugs plugs[] = {
   { P_POLHF,    "polar", 			C_POLHF, 	"10-07",	"Polar Codes",			"GPL license",		"http://www.ezcodesample.com/prefixer/prefixer_article.html",							"" },
   { P_SUB, 		"subotin", 			C_SUBOTIN, 	"2000",		"subotin RC",			"Public Domain",	"http://ezcodesample.com/ralpha/Subbotin.txt",											"" },
   { P_TORNADOHF,"tornado_huff", 	C_TORNADOHF,"0.6a",		"Tornado Huf",			"GPL license",		"http://freearc.org/Research.aspx\thttps://github.com/nemequ/tornado" ,					"" },
-  { P_TURBORC, 	"TurboRC", 			C_TURBORC, 	"",		    "Turbo Range Coder",			"",	"http://github.com/powturbo/Turbo-Range-Coder",											"0,1,2,3,4,5,6" },
+  { P_TURBORC, 	"TurboRC", 			C_TURBORC, 	"",		    "Turbo Range Coder",			"",	"http://github.com/powturbo/Turbo-Range-Coder",											"11,12,13,14,21,22,23,24,30,31,32,33,34,35" },
   { P_ZLIBH, 	"zlibh",			C_ZLIB, 	"",	        "zlib Huffmann",		"",					"http://zlib.net\thttps://github.com/madler/zlib",										"8,9,10,11,12,13,14,15,16,32" },
   { P_ZRLE, 	"zlibrle",			C_ZLIB, 	"",	        "zlib rle",		"",					"http://zlib.net\thttps://github.com/madler/zlib",										"" },
   //---- Encoding ------
@@ -1985,13 +1985,21 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
       #if C_TURBORC
     case P_TURBORC: { //int ec = 0; if(q=strchr(prm,'e')) ec = atoi(q+(q[1]=='='?2:1));
       switch(lev) {
-        case 0 : return trcsenc(   in, inlen, out);
-        case 1 : return trcsxenc(  in, inlen, out);
-        case 2 : return trcssenc(  in, inlen, out);
-        case 3 : return trcssxenc( in, inlen, out);
-        case 4 : return trcsgenc8( in, inlen, out);
-        case 5 : return trcsgenc16(in, inlen, out);
-        case 6 : return trcsgenc32(in, inlen, out);
+        case 11 : return rcsenc(     in, inlen, out);
+        case 12 : return rcsxenc(    in, inlen, out);
+        case 13 : return rcssenc(    in, inlen, out);
+        case 14 : return rcssxenc(   in, inlen, out);
+        case 21 : return rcrlesenc(  in, inlen, out);
+        case 22 : return rcrlesxenc( in, inlen, out);
+        case 23 : return rcrlessenc( in, inlen, out);
+        case 24 : return rcrlessxenc(in, inlen, out);
+
+        case 30 : return rcgsenc8(   in, inlen, out);
+        case 31 : return rcgsenc16(  in, inlen, out);
+        case 32 : return rcgsenc32(  in, inlen, out);
+        case 33 : return rcgssenc8(  in, inlen, out);
+        case 34 : return rcgssenc16( in, inlen, out);
+        case 35 : return rcgssenc32( in, inlen, out);
 //      case 2 : return trcnenc( in, inlen, out);
       }
 	}
@@ -2602,15 +2610,24 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
       #endif 
 
       #if C_TURBORC
-    case P_TURBORC: { //int ec = 0; char *q; if(q=strchr(prm,'e')) ec = atoi(q+(q[1]=='='?2:1));
+    case P_TURBORC: {
       switch(lev) {
-        case 0 : return trcsdec(   in, outlen, out);
-        case 1 : return trcsxdec(  in, outlen, out);
-        case 2 : return trcssdec(  in, outlen, out);
-        case 3 : return trcssxdec( in, outlen, out);
-        case 4 : return trcsgdec8( in, outlen, out);
-        case 5 : return trcsgdec16(in, outlen, out);
-        case 6 : return trcsgdec32(in, outlen, out);
+        case 11 : return rcsdec(   in, outlen, out);
+        case 12 : return rcsxdec(  in, outlen, out);
+        case 13 : return rcssdec(  in, outlen, out);
+        case 14 : return rcssxdec( in, outlen, out);
+
+        case 21 : return rcrlesdec(   in, outlen, out);
+        case 22 : return rcrlesxdec(  in, outlen, out);
+        case 23 : return rcrlessdec(  in, outlen, out);
+        case 24 : return rcrlessxdec( in, outlen, out);
+
+        case 30 : return rcgsdec8(    in, outlen, out);
+        case 31 : return rcgsdec16(   in, outlen, out);
+        case 32 : return rcgsdec32(   in, outlen, out);
+        case 33 : return rcgssdec8(   in, outlen, out);
+        case 34 : return rcgssdec16(  in, outlen, out);
+        case 35 : return rcgssdec32(  in, outlen, out);
 //        case 2 : return trcndec( in, outlen, out);
       }
 	}
