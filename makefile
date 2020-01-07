@@ -119,7 +119,7 @@ endif
 endif
 
 ifeq ($(ARCH),ppc64le)
-  SSE=-D__SSSE3__
+#  SSE=-D__SSSE3__
   CFLAGS=-mcpu=power9 -mtune=power9 $(SSE)
 else ifeq ($(ARCH),aarch64)
   CFLAGS+=-march=armv8-a 
