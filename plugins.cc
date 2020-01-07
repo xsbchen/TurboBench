@@ -882,10 +882,6 @@ const MarlinDictionary * Marlin_estimate_best_dictionary(const MarlinDictionary 
 #include "vecrc/vector_rc.h"
   #endif
 
-//  #if _ZLIBH
-//#include "zlibh/zlibh.h"
-//  #endif
-
   #if _MYCODEC
 //#include "my_header.h"
   #endif
