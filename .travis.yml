@@ -4,7 +4,7 @@ arch:
   - amd64
   - arm64 
   - ppc64le
-  - s390x 
+#  - s390x 
 
 compiler: 
   - gcc
@@ -25,7 +25,7 @@ matrix:
       arch: amd64 
       script: 
         - mingw32-make
-        - ./turborc -e0 turborc   
+        - ./turbobench -eFAST turbobench    
 
     - name: apple-macOS-xcode
       os: osx
