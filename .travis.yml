@@ -16,7 +16,7 @@ branches:
 
 script:
   - make
-  - ./turborc -e0 turborc   
+  - ./turbobench -eFAST turbobench   
 
 matrix:
   include:
