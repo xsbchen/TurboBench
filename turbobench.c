@@ -278,23 +278,21 @@ void plugsprtv(FILE *f, int fmt) {
   for(gs = plugs; gs->id >= 0; gs++)
     if(gs->codec && strcmp(gs->name,pv)) {
       pv = gs->name;
-	  char name[65],ver[33]; 
-      ver[0] = 0;
-	  codver(gs->id, gs->ver, ver); 
-      sprintf(name, "%s v%s", gs->name, ver);
+	  char name[65]; //,ver[33]; ver[0] = 0; codver(gs->id, gs->ver, ver);  
+      sprintf(name, "%s", gs->name);
       switch(fmt) {  
          case FMT_VBULLETIN: 
          case FMT_VBULLETIN2: 
-          fprintf(f, "[*][URL=\"%s\"]%s[/URL] %s\n", gs->url, name, gs->lic ); 
+          fprintf(f, "[*]%s\n", name ); 
           break;
         case FMT_HTML     : 
-          fprintf(f, "<li><a href=\"%s\">%s</a> %s\n", gs->url, name, gs->lic ); 
+          fprintf(f, "<li>%s\n", name ); 
           break;
         case FMT_MARKDOWN :
-          fprintf(f, " - [%s](%s) %s\n", name, gs->url, gs->lic ); 
+          fprintf(f, " - %s\n", name ); 
           break;
         default:
-          fprintf(f, "%-24s\t%s\t%s\n", name, gs->lic, gs->url );
+          fprintf(f, "%-24s\n", name);
       }
     }
 
