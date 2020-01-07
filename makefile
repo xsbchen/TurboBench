@@ -247,7 +247,7 @@ endif
 
 ifeq ($(LZMA), 1)
 CXXFLAGS+=-D_LZMA
-CXXFLAGS+=-D_7ZIP_ST
+CFLAGS+=-D_7ZIP_ST
 CXXFLAGS+=-D_7Z_TYPES_ 
 OB+=lzma/C/Alloc.o lzma/C/LzFind.o lzma/C/LzmaDec.o lzma/C/LzmaEnc.o lzma/C/LzmaLib.o 
 ifeq ($(OS),Windows_NT)
