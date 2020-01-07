@@ -432,7 +432,7 @@ endif
 
 ifeq ($(LZSA), 1)
 CXXFLAGS+=-D_LZSA
-CXXFLAGS+=-Ilzsa/src -Ilzsa/src/libdivsufsort/include
+CFLAGS+=-Ilzsa/src -Ilzsa/src/libdivsufsort/include
 OB+=lzsa/src/expand_block_v1.o lzsa/src/expand_block_v2.o lzsa/src/expand_context.o lzsa/src/expand_inmem.o lzsa/src/shrink_block_v1.o lzsa/src/shrink_block_v2.o lzsa/src/shrink_inmem.o lzsa/src/shrink_context.o \
     lzsa/src/matchfinder.o lzsa/src/frame.o 
 ifeq ($(DIVSORT), 1)
