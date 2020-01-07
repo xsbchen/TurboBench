@@ -1361,16 +1361,20 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
 	  #endif
 	  
       #if C_BROTLI
-    case P_BROTLI: { int lgwin, mode = BROTLI_DEFAULT_MODE; size_t esize = outsize;
-      if(q = strchr(prm,'w')) lgwin = atoi(q+(q[1]=='='?2:1)); // set LZ77 window size as in brotli/c/tools/brotli.c
-      else lgwin = dsize?(bsr32(dsize)-powof2(dsize)):(strchr(prm,'W')?BROTLI_DEFAULT_WINDOW:BROTLI_LARGE_MAX_WINDOW_BITS); 
-      if(q = strchr(prm,'m')) mode = atoi(q+(q[1]=='='?2:1));				                                                                            
-                                                                            brotlidic = brotlictx = brotlirep = 0;  // Only by powturbo modified brotli	
+    case P_BROTLI: { unsigned lgwin, mode = BROTLI_DEFAULT_MODE; size_t esize = outsize;
+      if(q = strchr(prm,'w'))             lgwin = atoi(q+(q[1]=='='?2:1));     // window specified by local parameter w
+      else if(dsize)                      lgwin = bsr32(dsize)-powof2(dsize);  // window specified by global option -d
+      else if(lev < 9 || strchr(prm,'W')) lgwin = BROTLI_DEFAULT_WINDOW;       // set default=24 for lev<8  
+      else                                lgwin = BROTLI_LARGE_MAX_WINDOW_BITS;// set large window brotli
+      if(q = strchr(prm,'m')) mode = atoi(q+(q[1]=='='?2:1));				
+                                                                            // Only for modified brotli by powturbo -------------------------------------
+                                                                            brotlidic = brotlictx = brotlirep = 0;  	
 																			if(strchr(prm,'V'))      brotlidic = 1; // Disable builtin dictionary
                                                                             if(strchr(prm,'r'))      brotlirep = 1; // Disable extended reps -1,1,-2,2,-3,3
                                                                             else if(strchr(prm,'R')) brotlirep = 2; // disable all reps
                                                                             if(strchr(prm,'x'))      brotlictx = 1; // disable order-2 lit context
                                                                             if(strchr(prm,'X'))      brotlictx = 2; // disable all lit contexts
+                                                                            //-----------------------------------------------------------------------  
       int rc = BrotliEncoderCompress(lev, lgwin, (BrotliEncoderMode)mode, (size_t)inlen, (uint8_t*)in, &esize, (uint8_t*)out); 		
       return rc?esize:0; 
     }
