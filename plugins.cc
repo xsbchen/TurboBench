@@ -1362,10 +1362,10 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
 	  
       #if C_BROTLI
     case P_BROTLI: { unsigned lgwin, mode = BROTLI_DEFAULT_MODE; size_t esize = outsize;
-      if(q = strchr(prm,'w'))             lgwin = atoi(q+(q[1]=='='?2:1));     // window specified by local parameter w
-      else if(dsize)                      lgwin = bsr32(dsize)-powof2(dsize);  // window specified by global option -d
-      else if(lev < 9 || strchr(prm,'W')) lgwin = BROTLI_DEFAULT_WINDOW;       // set default=24 for lev<8  
-      else                                lgwin = BROTLI_LARGE_MAX_WINDOW_BITS;// set large window brotli
+      if(q = strchr(prm,'w'))              lgwin = atoi(q+(q[1]=='='?2:1));     // window specified by local parameter w
+      else if(dsize)                       lgwin = bsr32(dsize)-powof2(dsize);  // window specified by global option -d
+      else if(lev < 10 || strchr(prm,'W')) lgwin = BROTLI_DEFAULT_WINDOW;       // set default=24 for lev<10
+      else                                 lgwin = BROTLI_LARGE_MAX_WINDOW_BITS;// set large window brotli
       if(q = strchr(prm,'m')) mode = atoi(q+(q[1]=='='?2:1));				
                                                                             // Only for modified brotli by powturbo -------------------------------------
                                                                             brotlidic = brotlictx = brotlirep = 0;  	
