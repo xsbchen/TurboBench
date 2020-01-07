@@ -1,11 +1,32 @@
 language: c
 
-compiler: gcc
+arch:
+  - amd64
+  - arm64 
+  - ppc64le
+  - s390x 
+
+compiler: 
+  - gcc
+  - clang
 
 branches:
   only:
-    - master   
+    - master 
+
 script:
-    - make
-os:
-  - linux
+  - make
+  - ./turborc -e0 turborc   
+
+matrix:
+  include:
+    - name: windows-mingw-w64
+      os: windows
+      arch: amd64 
+      script: 
+        - mingw32-make
+        - ./turborc -e0 turborc   
+
+    - name: apple-macOS-xcode
+      os: osx
+
