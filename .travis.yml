@@ -16,9 +16,7 @@ branches:
 
 script:
   - make
-  - unlimit -c unlimited
-  - ./turbobench -eCI -v9 turbobench   
-  - dbg ./turbobench core
+  - ./turbobench -ememcpy -v9 turbobench   
 
 matrix:
   include:
