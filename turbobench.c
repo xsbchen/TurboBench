@@ -1024,7 +1024,7 @@ int becomp(unsigned char *_in, unsigned _inlen, unsigned char *_out, size_t outs
         if(bs == 2 && oplen >= (1<<16)) { printf("Output larger than input! Use option '-P'\n"); exit(-1); }
         if(mode) { bs==2?(ctou16(op) = oplen):(ctou32(op) = oplen); } op += oplen+bs; ip += iplen; 
         if(op > _out+outsize) 
-	      die("Overflow error %llu, %u in lib=%d\n", outsize, (int)(ptrdiff_t)(op - _out), id);                                                      
+	      die("Overflow error %llu, %u in lib=%d\n", outsize, (int)(op - _out), id);                                                      
       }
     }
   TMEND(_inlen);	
