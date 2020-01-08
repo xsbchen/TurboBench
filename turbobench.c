@@ -1362,7 +1362,7 @@ int main(int argc, char* argv[]) {
     xplug==1?plugsprt():plugsprtv(stdout, fmt); 
     exit(0); 
   }
-  tm_init(0, verbose);
+  tm_init(0, verbose);  
   if(argc <= optind) {
       #ifdef _WIN32
     setmode( fileno(stdin), O_BINARY ); 
