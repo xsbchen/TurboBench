@@ -16,7 +16,8 @@ branches:
 
 script:
   - make
-  - find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -o -name '*.txt' -exec cat {} \; > data
+  - ./turbobench -eCI turbobnch  
+  - find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -exec cat {} \; > data
   - ./turbobench -eCI data  
 
 matrix:
