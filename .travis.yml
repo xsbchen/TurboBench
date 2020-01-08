@@ -1,7 +1,7 @@
 language: c
 
 arch:
-  - amd64
+# - amd64
   - arm64 
   - ppc64le
   - s390x 
