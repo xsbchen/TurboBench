@@ -34,7 +34,7 @@ matrix:
       compiler: clang
       script: 
         - make
-        - ./turbobench -eCI turbobench
+        - ./turbobench -eMEMCPY turbobench
 
     - name: windows-mingw-w64
       os: windows
