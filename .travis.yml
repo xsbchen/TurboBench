@@ -36,7 +36,6 @@ matrix:
         - make
         - ./turbobench -eCI2 turbobench
 
-  include:
     - name: windows-mingw-w64
       os: windows
       arch: amd64 
