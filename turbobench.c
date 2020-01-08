@@ -31,12 +31,16 @@
 #include <inttypes.h> 
 #include <float.h> 
 #include <errno.h>
-#include <malloc.h>			
 #include <sys/types.h>
 #include <ctype.h>
   #ifndef _WIN32
 #include <sys/resource.h>
-  #endif 
+  #endif
+#ifdef __APPLE__
+#include <sys/malloc.h>
+#else
+#include <malloc.h>
+#endif
   #ifdef _MSC_VER
 #include "vs/getopt.h"
   #else
