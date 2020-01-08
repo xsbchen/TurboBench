@@ -1,13 +1,13 @@
 language: c
 
 arch:
-  - amd64
+#  - amd64
 #  - arm64 
 #  - ppc64le
-# - s390x 
+ - s390x 
 
 compiler: 
-  - gcc
+#  - gcc
   - clang
 
 branches:
@@ -16,35 +16,33 @@ branches:
 
 script:
   - make
-  - ./turbobench -eCI turbobench   
+  - ./turbobench -eCI -v9 turbobench   
 
 matrix:
   include:
-    - name: linux-s390x-gcc
-      os: linux
-      arch: s390x 
-      compiler: gcc
-      script: 
-        - make
-        - ./turbobench -eCI turbobench
+#    - name: linux-s390x-gcc
+#      os: linux
+#      arch: s390x 
+#      compiler: gcc
+#      script: 
+#        - make
+#        - ./turbobench -eCI turbobench
 
-    - name: linux-s390x-clang
-      os: linux
-      arch: s390x 
-      compiler: clang
-      script: 
-        - make
-        - ./turbobench -eMEMCPY turbobench
+#    - name: linux-s390x-clang
+#      os: linux
+#      arch: s390x 
+#      compiler: clang
+#      script: 
+#        - make
+#        - ./turbobench -eMEMCPY turbobench
 
-    - name: windows-mingw-w64
-      os: windows
-      arch: amd64 
-      script: 
-        - mingw32-make
-        - ./turbobench -eCI turbobench.exe    
+#    - name: windows-mingw-w64
+#      os: windows
+#      arch: amd64 
+#      script: 
+#        - mingw32-make
+#        - ./turbobench -eCI turbobench.exe    
 
-
-
-    - name: apple-macOS-xcode
-      os: osx
+#    - name: apple-macOS-xcode
+#      os: osx
 
