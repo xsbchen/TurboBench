@@ -94,7 +94,9 @@ enum {
 #define _LIBBSC 0
 #endif
  P_LIBBSC,
- P_LIBBSCC,
+ P_LIBBSCC,   //QLFC
+ P_DIVBWT,    //bwt
+ P_ST,        //st 
 #ifndef _LIBDEFLATE
 #define _LIBDEFLATE 0
 #endif
@@ -262,8 +264,6 @@ enum {
  P_RLEM,
  P_RLE8,
   //---------- Transform ------------------
- P_DIVBWT,
- P_ST,
 
 #ifndef _BRC
 #define _BRC 0
@@ -804,7 +804,7 @@ size_t lz4ultra_decompress_inmem(const unsigned char *pFileData, unsigned char *
 
 
   //------------------------------------ Transform ----------------------------------
-  #if _DIVBWT || C_LIBBSC
+  #if _DIVBWT || _LIBBSC
 #include "libbsc/libbsc/bwt/divsufsort/divsufsort.h"
 #include "libbsc/libbsc/bwt/bwt.h"
 #include "libbsc/libbsc/coder/coder.h"
@@ -1735,7 +1735,7 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
      #endif
 
     //------------------------- Transform -----------------------------
-      #if _DIVBWT
+      #if _LIBBSC
     case P_DIVBWT: { int *sa = (int *)malloc((inlen + 1) * sizeof(int)); if(!sa) return -1;
       unsigned bwtidx = divbwt(in, out+sizeof(bwtidx), sa, inlen, NULL, NULL, 0); free(sa); *(unsigned *)out = bwtidx; return inlen+4; }
     case P_ST: { memcpy(out+4,in, inlen); *(unsigned *)(out) = bsc_st_encode(out+4, inlen, lev, 0); return inlen+4; }
@@ -2361,7 +2361,7 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
     case P_TB64SSE: return tb64ssedec(  in, inlen, out);
       #endif
 
-      #if _DIVBWT
+      #if _LIBBSC
     case P_DIVBWT: memcpy(out, in+4, outlen); bsc_bwt_decode(out, outlen, *(unsigned *)in, 0, NULL, 0); return inlen;
     case P_ST: {   memcpy(out, in+4, inlen-4); bsc_st_decode(out, inlen-4, lev, *(unsigned *)(in), 0); break; }
       #endif
