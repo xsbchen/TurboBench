@@ -156,7 +156,7 @@ endif
 ifeq ($(NMEMSIZE),1)
 CFLAGS+=-DNMEMSIZE
 else
-ifeq ($(UNAME),$(filter $(UNAME),Darwin FreeBSD GNU/kFreeBSD Linux NetBSD SunOS))
+ifeq ($(OS),$(filter $(OS),Darwin FreeBSD GNU/kFreeBSD Linux NetBSD SunOS))
 LDFLAGS += -ldl
 endif
 endif
@@ -236,7 +236,7 @@ OB+=lzham_codec_devel/lzhamcomp/lzham_lzbase.o lzham_codec_devel/lzhamcomp/lzham
 	lzham_codec_devel/lzhamdecomp/lzham_platform.o lzham_codec_devel/lzhamdecomp/lzham_prefix_coding.o \
 	lzham_codec_devel/lzhamdecomp/lzham_symbol_codec.o lzham_codec_devel/lzhamdecomp/lzham_timer.o lzham_codec_devel/lzhamdecomp/lzham_vector.o \
 	lzham_codec_devel/lzhamlib/lzham_lib.o 
-ifeq ($(UNAME), Windows)
+ifeq ($(OS), Windows)
 OB+=lzham_codec_devel/lzhamcomp/lzham_win32_threading.o
 endif
 endif
@@ -464,7 +464,7 @@ endif
 
 ifeq ($(GIPFELI), 1)
 CXXFLAGS+=-D_GIPFELI
-ifeq ($(UNAME), Linux)
+ifeq ($(OS),$(filter $(OS),Linux GNU/kFreeBSD GNU OpenBSD FreeBSD DragonFly NetBSD MSYS_NT Haiku))
 OB+=gipfeli/lz77.o gipfeli/entropy.o gipfeli/entropy_code_builder.o gipfeli/decompress.o gipfeli/gipfeli-internal.o
 endif
 endif
