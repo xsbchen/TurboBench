@@ -262,6 +262,7 @@ endif
 endif
 
 ifeq ($(LZSSE), 1) # SSE4.1 
+ifeq ($(ARCH),$(filter $(ARCH),x86_))
 CXXFLAGS+=-D_LZSSE
 LZSSE/lzsse2/lzsse2.o: LZSSE/lzsse2/lzsse2.cpp
 	$(CXX) -O2 -msse4.1 -std=c++11 $< -c -o $@ 
@@ -273,6 +274,7 @@ LZSSE/lzsse8/lzsse8.o: LZSSE/lzsse8/lzsse8.cpp
 	$(CXX) -O2 -msse4.1 -std=c++11  $< -c -o $@
 
 OB+=LZSSE/lzsse2/lzsse2.o LZSSE/lzsse4/lzsse4.o LZSSE/lzsse8/lzsse8.o 
+endif
 endif
 
 ifeq ($(ZSTD), 1)
