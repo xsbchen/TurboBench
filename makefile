@@ -26,7 +26,7 @@ BZIP2=1
 FASTLZ=1
 FLZMA2=1
 LIBDEFLATE=1
-GIPFELI=0
+#GIPFELI=1
 GLZA=1
 HEATSHRINK=1
 #IGZIP=1
@@ -197,7 +197,7 @@ endif
 
 DIVSUFSORT=libbsc/libbsc/bwt/divsufsort/divsufsort.o
 ifeq ($(LIBBSC),1)
-CXXFLAGS+=-D_BSC -ICSC/src/libcsc -DLIBBSC_SORT_TRANSFORM_SUPPORT 
+CXXFLAGS+=-D_LIBBSC -ICSC/src/libcsc -DLIBBSC_SORT_TRANSFORM_SUPPORT 
 OB+=libbsc/libbsc/libbsc/libbsc.o libbsc/libbsc/coder/coder.o libbsc/libbsc/coder/qlfc/qlfc.o libbsc/libbsc/coder/qlfc/qlfc_model.o libbsc/libbsc/platform/platform.o libbsc/libbsc/filters/detectors.o \
 	libbsc/libbsc/filters/preprocessing.o libbsc/libbsc/adler32/adler32.o libbsc/libbsc/bwt/bwt.o $(DIVSUFSORT) libbsc/libbsc/st/st.o libbsc/libbsc/lzp/lzp.o
 endif
