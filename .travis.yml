@@ -15,8 +15,8 @@ branches:
     - master 
 
 script:
-  - make
-  - ./turbobench -eCI turbobench   
+  - make STATIC=1
+  - ./turbobench -eCI turbobench  
 
 matrix:
   include:
@@ -40,7 +40,7 @@ matrix:
       os: windows
       arch: amd64 
       script: 
-        - mingw32-make
+        - mingw32-make STATIC=1
         - ./turbobench -eCI turbobench.exe    
 
     - name: apple-macOS-xcode
