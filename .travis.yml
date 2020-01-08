@@ -20,14 +20,16 @@ script:
 
 matrix:
   include:
-    - name: s390x-gcc
+    - name: linux-s390x-gcc
+      os: linux
       arch: s390x 
       compiler: gcc
       script: 
         - make
         - ./turbobench -eCI turbobench
 
-    - name: s390x-clang
+    - name: linux-s390x-clang
+      os: linux
       arch: s390x 
       compiler: clang
       script: 
