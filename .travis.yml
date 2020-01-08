@@ -16,9 +16,9 @@ branches:
 
 script:
   - make
-  - ./turbobench -eCI turbobench  
+  - ./turbobench -eCI -v0 turbobench  
   - find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -exec cat {} \; > data
-  - ./turbobench -eCI data  
+  - ./turbobench -eCI -v0 data  
 
 matrix:
   include:
@@ -28,7 +28,7 @@ matrix:
       arch: amd64 
       script: 
         - mingw32-make
-        - ./turbobench -eCI turbobench.exe    
+        - ./turbobench -eCI -v0 turbobench.exe    
 
     - name: apple-macOS-xcode
       os: osx
