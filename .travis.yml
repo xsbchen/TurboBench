@@ -16,7 +16,7 @@ branches:
 
 script:
   - make
-  - ./turbobench -eFAST turbobench   
+  - ./turbobench -eCI turbobench   
 
 matrix:
   include:
@@ -25,7 +25,7 @@ matrix:
       arch: amd64 
       script: 
         - mingw32-make
-        - ./turbobench -eFAST turbobench.exe    
+        - ./turbobench -eCI turbobench.exe    
 
     - name: apple-macOS-xcode
       os: osx
