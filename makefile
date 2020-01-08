@@ -261,7 +261,7 @@ OB+=lzma/C/Threads.o lzma/C/LzFindMt.o
 endif
 endif
 
-ifneq ($(LZSSE), 1) # SSE4.1 
+ifeq ($(LZSSE), 1) # SSE4.1 
 CXXFLAGS+=-D_LZSSE
 LZSSE/lzsse2/lzsse2.o: LZSSE/lzsse2/lzsse2.cpp
 	$(CXX) -O2 -msse4.1 -std=c++11 $< -c -o $@ 
@@ -375,7 +375,7 @@ fast-lzma2/range_enc.o fast-lzma2/fl2_threading.o fast-lzma2/fl2_pool.o fast-lzm
 #fast-lzma2/xxhash.o fast-lzma2/fl2_error_private.o  
 endif
 
-ifneq ($(GLZA), 1)
+ifeq ($(GLZA), 1)
 CXXFLAGS+=-D_GLZA
 glza/GLZAmodel.o: glza/GLZAmodel.c
 	$(CC) -O2 $(MARCH) $(CFLAGS) $< -c -o $@ 
@@ -473,7 +473,7 @@ OB+=gipfeli/lz77.o gipfeli/entropy.o gipfeli/entropy_code_builder.o gipfeli/deco
 endif
 endif
 
-ifneq ($(SLZ), 1)
+ifeq ($(SLZ), 1)
 CXXFLAGS+=-D_SLZ
 OB+=libslz/src/slz.o 
 endif
@@ -584,7 +584,7 @@ OB+=density/src/buffers/buffer.o density/src/algorithms/algorithms.o density/src
 	density/src/algorithms/cheetah/core/cheetah_decode.o density/src/algorithms/cheetah/core/cheetah_encode.o 
 endif
 
-ifneq ($(XPACK), 1)
+ifeq ($(XPACK), 1)
 CXXFLAGS+=-D_XPACK
 # O2 instead of O3 because of error gcc 7
 xpack/lib/xpack_common.o: xpack/lib/xpack_common.c
@@ -602,21 +602,21 @@ xpack/lib/x86_cpu_features.o: xpack/lib/x86_cpu_features.c
 OB+=xpack/lib/xpack_common.o xpack/lib/xpack_compress.o xpack/lib/xpack_decompress.o xpack/lib/x86_cpu_features.o
 endif
 
-ifneq ($(PITHY), 1)
+ifeq ($(PITHY), 1)
 CXXFLAGS+=-D_PITHY
 pithy/pithy.o: pithy/pithy.c
 	$(CC) -O2 $(MARCH) $(CFLAGS)  $< -c -o $@
 OB+=pithy/pithy.o
 endif
 
-ifneq ($(SHRINKER), 1)
+ifeq ($(SHRINKER), 1)
 CXXFLAGS+=-D_SHRINKER
 shrinker/shrinker.o: shrinker/shrinker.c
 	$(CC) -O2 $(MARCH) $(CFLAGS) $< -c -o $@  
 OB+=shrinker/Shrinker.o
 endif
 
-ifneq ($(WFLZ), 1)
+ifeq ($(WFLZ), 1)
 CXXFLAGS+=-D_WFLZ
 wflz/wfLZ.o: wflz/wfLZ.c
 	$(CC) -O2 $(MARCH) $(CFLAGS) $< -c -o $@
