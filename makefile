@@ -50,7 +50,7 @@ TURBORC=1
 TURBORLE=1
 #ZLIB_NG=1
 ZOPFLI=1
-ZPAQ=1
+#ZPAQ=1
 endif
 
 ifeq ($(NEC),1) # Encoding Entropy coders / RLE 
