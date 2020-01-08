@@ -15,32 +15,18 @@ branches:
     - master 
 
 script:
-  - make STATIC=1
-  - ./turbobench -eCI turbobench  
+  - make
+  - find . -type f -exec cat {} + >x
+  - ./turbobench -eCI x  
 
 matrix:
   include:
-#    - name: linux-s390x-gcc
-#      os: linux
-#      arch: s390x 
-#      compiler: gcc
-#      script: 
-#        - make
-#        - ./turbobench -eCI turbobench
-
-#    - name: linux-s390x-clang
-#      os: linux
-#      arch: s390x 
-#      compiler: clang
-#      script: 
-#        - make
-#        - ./turbobench -eMEMCPY turbobench
 
     - name: windows-mingw-w64
       os: windows
       arch: amd64 
       script: 
-        - mingw32-make STATIC=1
+        - mingw32-make
         - ./turbobench -eCI turbobench.exe    
 
     - name: apple-macOS-xcode
