@@ -1297,7 +1297,7 @@ int main(int argc, char* argv[]) {
   char               *scmd = NULL,*trans=NULL,*beb=NULL,*rem="",s[2049];
   char               *_argvx[1], **argvx=_argvx;
 
-  int c, digit_optind = 0;
+  int c, digit_optind = 0;												if(verbose > 5) printf("START1\n");fflush(stdout);
   for(;;) {
     int this_option_optind = optind ? optind : 1;
     int option_index = 0;
@@ -1357,7 +1357,7 @@ int main(int argc, char* argv[]) {
         usage(argv[0]);
         exit(0); 
     }
-  }
+  }																		if(verbose > 5) printf("START2\n");fflush(stdout);
   if(xplug) { 
     xplug==1?plugsprt():plugsprtv(stdout, fmt); 
     exit(0); 
@@ -1373,14 +1373,14 @@ int main(int argc, char* argv[]) {
     recurse  = 0;
   } else 
     argvx = argv;
-
+																				if(verbose > 5) printf("START3\n");fflush(stdout);
   if(fmt) {
     if(argc <= optind) { printf("no input file specified"); exit(0); }
     for(fno = optind; fno < argc; fno++)
       printfile(argvx[fno], xstdout, fmt, rem);
     exit(0);
   }
-  tm_Repk = 1;
+  tm_Repk = 1;																		if(verbose > 5) printf("START4\n");fflush(stdout);
   if(rprio) { 
       #ifdef _WIN32
     SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
@@ -1388,7 +1388,7 @@ int main(int argc, char* argv[]) {
     setpriority(PRIO_PROCESS, 0, -19);
 	  #endif
   }
-  if(!scmd) scmd = "FAST";																if(verbose > 5) printf("%s\n", scmd);
+  if(!scmd) scmd = "FAST";																if(verbose > 5) printf("%s\n", scmd);fflush(stdout);
   for(s[0] = 0;;) {
     char *q; 
 	int i=0;
@@ -1424,7 +1424,7 @@ int main(int argc, char* argv[]) {
       strcat(s,"/"); 
     }
     scmd = q?(q+1):(char*)"";
-  }																									if(verbose > 5) printf("plugreg\n");
+  }																									if(verbose > 5) printf("plugreg\n");fflush(stdout);
   
   unsigned k = plugreg(plug, s, 0, bsize, bsizex);
   if(k > 1 && argc == 1 && !strcmp(argvx[0],"stdin")) { printf("multiple codecs not allowed when reading from stdin"); exit(0); }
@@ -1434,7 +1434,7 @@ int main(int argc, char* argv[]) {
 
   if(!filenmax) filenmax = Gb; 
   if(filenmax > 4ull*GB) filenmax = 4ull*GB;
-																									if(verbose > 5) printf("Process files\n");
+																									if(verbose > 5) printf("Process files\n");fflush(stdout);
   long long totinlen = 0;  
   int       krep;
   struct    plug *p;
@@ -1450,7 +1450,7 @@ int main(int argc, char* argv[]) {
       g->len = g->tck = g->tdk = g->memc = g->memd = 0;
       BEFILE;
       for(fno = optind; fno < argc; fno++) {
-	    finame = argvx[fno];																			if(verbose > 1) printf("%s,%u\n", finame, filenmax);
+	    finame = argvx[fno];																			if(verbose > 1) printf("%s,%u\n", finame, filenmax);fflush(stdout);
         totinlen += plugfile(p, finame, filenmax, bsize, plugr, tid, krep);
 	    g->len += p->len;
 	    g->tck += p->tc;
