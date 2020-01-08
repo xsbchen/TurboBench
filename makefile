@@ -733,13 +733,13 @@ turbobench: $(OB) turbobench.o
 	$(CXX) $^ $(LDFLAGS) -o turbobench
  
 .c.o:
-	$(CC) -O2 $(MARCH) $(CFLAGS) $< -c -o $@  
+	$(CC) -O3 $(MARCH) $(CFLAGS) $< -c -o $@  
 
 .cc.o:
-	$(CXX) -O2 $(MARCH) $(CXXFLAGS)  $< -c -o $@ 
+	$(CXX) -O3 $(MARCH) $(CXXFLAGS)  $< -c -o $@ 
 
 .cpp.o:
-	$(CXX) -O2 $(MARCH) $(CXXFLAGS) $< -c -o $@ 
+	$(CXX) -O3 $(MARCH) $(CXXFLAGS) $< -c -o $@ 
 
 ifeq ($(OS),Windows_NT)
 clean:
