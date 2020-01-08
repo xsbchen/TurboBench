@@ -1388,7 +1388,7 @@ int main(int argc, char* argv[]) {
     setpriority(PRIO_PROCESS, 0, -19);
 	  #endif
   }
-  if(!scmd) scmd = "FAST";
+  if(!scmd) scmd = "FAST";																if(verbose > 5) printf("%s\n", scmd);
   for(s[0] = 0;;) {
     char *q; 
 	int i=0;
@@ -1424,7 +1424,7 @@ int main(int argc, char* argv[]) {
       strcat(s,"/"); 
     }
     scmd = q?(q+1):(char*)"";
-  }
+  }																									if(verbose > 5) printf("plugreg\n");
   
   unsigned k = plugreg(plug, s, 0, bsize, bsizex);
   if(k > 1 && argc == 1 && !strcmp(argvx[0],"stdin")) { printf("multiple codecs not allowed when reading from stdin"); exit(0); }
@@ -1434,7 +1434,7 @@ int main(int argc, char* argv[]) {
 
   if(!filenmax) filenmax = Gb; 
   if(filenmax > 4ull*GB) filenmax = 4ull*GB;
-
+																									if(verbose > 5) printf("Process files\n");
   long long totinlen = 0;  
   int       krep;
   struct    plug *p;
