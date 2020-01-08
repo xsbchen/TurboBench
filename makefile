@@ -28,7 +28,7 @@ FLZMA2=1
 LIBDEFLATE=1
 #GIPFELI=1
 GLZA=1
-HEATSHRINK=1
+#HEATSHRINK=1
 #IGZIP=1
 LIBBSC=1
 LIBZLING=1
@@ -45,7 +45,7 @@ PYSAP=1
 QUICKLZ=1
 SCHOCO=1
 SNAPPY=1
-SNAPPY_C=1
+#SNAPPY_C=1
 TURBORC=1
 TURBORLE=1
 #ZLIB_NG=1
@@ -61,7 +61,7 @@ FASTHF=1
 #FASTARI=1
 FPAQ0P=1
 FPAQC=1
-FPC=1
+#FPC=1
 FQZ0=1
 RANS_S=1
 SUBOTIN=1
@@ -733,13 +733,13 @@ turbobench: $(OB) turbobench.o
 	$(CXX) $^ $(LDFLAGS) -o turbobench
  
 .c.o:
-	$(CC) -O3 $(MARCH) $(CFLAGS) $< -c -o $@  
+	$(CC) -O2 $(MARCH) $(CFLAGS) $< -c -o $@  
 
 .cc.o:
-	$(CXX) -O3 $(MARCH) $(CXXFLAGS)  $< -c -o $@ 
+	$(CXX) -O2 $(MARCH) $(CXXFLAGS)  $< -c -o $@ 
 
 .cpp.o:
-	$(CXX) -O3 $(MARCH) $(CXXFLAGS) $< -c -o $@ 
+	$(CXX) -O2 $(MARCH) $(CXXFLAGS) $< -c -o $@ 
 
 ifeq ($(OS),Windows_NT)
 clean:
