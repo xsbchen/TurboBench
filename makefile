@@ -165,10 +165,6 @@ LDFLAGS += -ldl
 endif
 endif
 
-ifeq ($(LZTURBO),1)
-CFLAGS+=-DLZTURBO
-endif
-
 ifeq ($(OPENMP),1)
 CFLAGS+=-fopenmp -DLIBBSC_OPENMP_SUPPORT
 LDFLAGS+=-fopenmp 
@@ -182,6 +178,7 @@ CXXFLAGS+=$(DDEBUG) -w -fpermissive -Wall -fno-rtti $(INC)
 all:  turbobench
 
 ifeq ($(LZTURBO),1)
+CXXFLAGS+=-DLZTURBO
 include ../dev/x/lzturbo.mk
 endif
 
@@ -285,71 +282,10 @@ OB+=zstd/lib/common/pool.o zstd/lib/common/xxhash.o zstd/lib/common/error_privat
     zstd/lib/decompress/zstd_decompress.o zstd/lib/decompress/zstd_decompress_block.o zstd/lib/decompress/zstd_ddict.o zstd/lib/compress/fse_compress.o zstd/lib/common/fse_decompress.o zstd/lib/compress/huf_compress.o zstd/lib/decompress/huf_decompress.o zstd/lib/common/zstd_common.o zstd/lib/common/entropy_common.o
 endif
 
-#------------------ zlib ---------------------
-ifeq ($(ZLIB_NG), 1)
-#1 create a zlib compatible libz.a: "cd zlib-ng" , "./configure --zlib-compat" (see zlib-ng/INSTALL )
-#2 compile with: "make HAVE_ZLIB=1 ZLIB_NG=1"
-CXXFLAGS+=-D_ZLIB_NG
-endif
-
-ifeq ($(ZLIB_ZNG), 1)
-#1 create "libz-ng.a"
-#  cd zlib-ng
-#  ./configure
-#  make
-#  cd ..
-#2 copy "zlib-ng/libz-ng.a" to directory "zlib-ng_" 
-#  cp zlib-ng/libz-ng.a ../libz-ng_
-#3 compile turbobench with: 
-#  make ZLIB_ZNG=1
-CXXFLAGS+=-D_ZLIB_ZNG
-OB+=zlib-ng_/libz-ng.a
-#OB+=zlib-ng_/libz-ng_arm.a
-endif
-
-ifeq ($(ZLIB_DIR),)
-
-ifeq ($(HAVE_ZLIB), 1)
-ifeq ($(ZLIB_NG), 1)
-#1 create libz.a: "cd zlib-ng" , "./configure --zlib_compat"
-#2 compile with: "make HAVE_ZLIB=1 ZLIB_NG=1"
-CXXFLAGS+=-DZLIB_NG
-OB+=zlib-ng_/libz.a
-else
-
-ifeq ($(STATIC),1)
-OB+=/usr/lib/x86_64-linux-gnu/libz.a
-else
-OB+=-lz
-endif
-endif
-
-else
-ifeq ($(ZLIB_NG), 1)
-ZD=zlib-ng/
-#type "./configure" in zlib_ng directory to create zconf.h
-OB+=$(ZD)deflate_fast.o $(ZD)deflate_slow.o $(ZD)match.o
-else
-ifeq ($(ZLIB_INTEL), 1)
-ZD=zlib_intel/
-OB+=$(ZD)match.o
-else
+ifeq ($(ZLIB), 1)
+CXXFLAGS+=-D_ZLIB
 ZD=zlib/
-endif
-endif
-
-#ifeq ($(ZLIB_ZNG), 1)
-#else
 OB+=$(ZD)adler32.o $(ZD)crc32.o $(ZD)compress.o $(ZD)deflate.o $(ZD)infback.o $(ZD)inffast.o $(ZD)inflate.o $(ZD)inftrees.o $(ZD)trees.o $(ZD)uncompr.o $(ZD)zutil.o
-#endif
-endif
-
-else
-# ZLIB_DIR where the static library lzlib.a is located. Example  make ZLIB_DIR="zlib-gcc.amd64/libz.a"
-#ZLIB_DIR=/usr/lib/x86_64-linux-gnu/libz.a
-#ZLIB_DIR=zlib-ng/libz.a
-#ZLIB_DIR=zlib-gcc.amd64/libz.a
-OB+=$(ZLIB_DIR)/libz.a
 endif
 
 ifeq ($(ZOPFLI), 1)
