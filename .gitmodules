@@ -10,10 +10,6 @@
 [submodule "bzip2"]
 	path = bzip2
 	url = https://github.com/asimonov-im/bzip2.git
-[submodule "density"]
-	path = density
-	url = https://github.com/centaurean/density.git
-	branch = dev
 [submodule "gipfeli"]
 	path = gipfeli
 	url = https://github.com/google/gipfeli.git
@@ -44,9 +40,6 @@
 [submodule "zpaq"]
 	path = zpaq
 	url = https://github.com/zpaq/zpaq.git
-[submodule "shoco"]
-	path = shoco
-	url = https://github.com/Ed-von-Schleck/shoco.git
 [submodule "TurboRLE"]
 	path = TurboRLE
 	url = https://github.com/powturbo/TurboRLE.git
