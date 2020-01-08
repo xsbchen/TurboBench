@@ -16,8 +16,8 @@ branches:
 
 script:
   - make
-  - find . -type f -exec cat {} + >x
-  - ./turbobench -eCI x  
+  - find data/ -name '*.o' -exec cat {} \; > data
+  - ./turbobench -eCI data  
 
 matrix:
   include:
