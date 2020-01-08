@@ -22,8 +22,25 @@ script:
 
 matrix:
   include:
+    - name: linux-amd64-gcc
+      arch: amd64
+      compiler: gcc
+      script:
+        - make
+        - ./turbobench -eCI2 -v0 turbobench  
+        - find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -exec cat {} \; > data
+        - ./turbobench -eCI2 -v0 data  
 
-    - name: windows-mingw-w64
+    - name: linux-amd64-clang
+      arch: amd64 
+      compiler: clang
+      script:
+        - make
+        - ./turbobench -eCI2 -v0 turbobench  
+        - find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -exec cat {} \; > data
+        - ./turbobench -eCI2 -v0 data  
+
+    - name: windows-amd64-mingw_w64
       os: windows
       arch: amd64 
       script: 
