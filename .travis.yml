@@ -22,7 +22,7 @@ script:
 
 matrix:
   include:
-    - name: linux-amd64-gcc
+    - name: Linux-amd64-gcc
       arch: amd64
       compiler: gcc
       script:
@@ -31,7 +31,7 @@ matrix:
         - find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -exec cat {} \; > data
         - ./turbobench -eCI2 -v0 data  
 
-    - name: linux-amd64-clang
+    - name: Linux-amd64-clang
       arch: amd64 
       compiler: clang
       script:
@@ -40,15 +40,16 @@ matrix:
         - find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -exec cat {} \; > data
         - ./turbobench -eCI2 -v0 data  
 
-    - name: windows-amd64-mingw_w64
+    - name: Windows-amd64-mingw_w64
       os: windows
       arch: amd64 
       script: 
         - mingw32-make
         - ./turbobench -eCI -v0 turbobench.exe    
 
-    - name: apple-macOS-xcode
+    - name: MacOs-amd64-xcode
       os: osx
+      arch: amd64 
 
   exclude:
       arch: s390x 
