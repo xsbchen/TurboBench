@@ -8,4 +8,3 @@ int absd(FILET *f, int f_len, unsigned char *g);
 #ifdef __cplusplus
 }
 #endif
-
