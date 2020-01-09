@@ -61,6 +61,7 @@ FASTHF=1
 #FASTARI=1
 FPAQ0P=1
 FPAQC=1
+FREQTAB=1
 #FPC=1
 FQZ0=1
 RANS_S=1
@@ -461,6 +462,26 @@ ifeq ($(FPC), 1)
 CXXFLAGS+=-D_FPC
 OB+=FPC/fpc.o
 endif
+
+ifeq ($(FREQTAB),1)
+CXXFLAGS+=-D_FREQTAB
+
+ifeq ($(FREQTABO),1)
+FREQOPT=-march=skylake -fwhole-program -fpermissive -fstrict-aliasing -fomit-frame-pointer -I../Lib3 -I../Lib \
+-fno-stack-protector -fno-stack-check -fno-check-new \
+-fno-exceptions -fno-rtti -fno-operator-names \
+-flto -ffat-lto-objects -Wl,-flto -fuse-linker-plugin -Wl,-O -Wl,--sort-common -Wl,--as-needed -ffunction-sections
+
+freqtab/src/c_mem.o: freqtab/src/c_mem.cpp
+	$(CXX) $(FREQOPT) -O3 -std=c++11 $< -c -o $@ 
+
+freqtab/src/model.o: freqtab/src/model.cpp
+	$(CXX) $(FREQOPT) -O3 -march=skylake -std=c++11 $< -c -o $@ 
+endif
+
+OB+=freqtab/src/c_mem.o freqtab/src/coder/model.o
+endif
+
 
 ifeq ($(RANS_S),1) 
 CXXFLAGS+=-D_RANS_S
