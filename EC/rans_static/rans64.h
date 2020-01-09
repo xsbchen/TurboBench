@@ -331,3 +331,4 @@ static inline void Rans64DecRenorm(Rans64State* r, uint32_t** pptr)
 }
 
 #endif // RANS64_HEADER
+
