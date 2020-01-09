@@ -359,6 +359,12 @@ CXXFLAGS+=-D_LZLIB
 OB+=lzlib-1.11/lzlib.o lzlib_/bbexample.o 
 endif
 
+ifeq ($(ZLIB_NG), 1)
+CMD:= $(shell cd zlib-ng && ./configure && make && cd ..)
+CXXFLAGS+=-D_ZLIB_NG
+OB+=zlib-ng/libz-ng.a
+endif
+
 ifeq ($(LZO),1)
 CXXFLAGS+=-D_LZO
 INC+=-Ilzo/include
@@ -419,6 +425,7 @@ endif
 ifeq ($(SMALLZ4), 1)
 CXXFLAGS+=-DSMALLZ4
 endif
+
 #------------------------- Entropy coder -----------------------------------------
 # First download or clone aomedia (git clone https://aomedia.googlesource.com/aom) into TurboBench directory
 # after cmake, put the generated "aom_config.h" into the aom directory
