@@ -15,7 +15,7 @@ branches:
     - master 
 
 script:
-  - make EC=1
+  - make 
 #  - ./turbobench -eCI -v0 turbobench  
 #  - find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -exec cat {} \; > csrc
 #  - ./turbobench -eCI -v0 csrc  
