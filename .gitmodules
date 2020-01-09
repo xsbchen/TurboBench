@@ -1,9 +1,6 @@
 [submodule "CSC"]
 	path = CSC
 	url = https://github.com/fusiyuan2010/CSC.git
-[submodule "FastARI"]
-	path = FastARI
-	url = https://github.com/davidcatt/FastARI.git
 [submodule "FastLZ"]
 	path = FastLZ
 	url = https://github.com/ariya/FastLZ.git
@@ -73,9 +70,6 @@
 [submodule "pysap"]
 	path = pysap
 	url = https://github.com/SecureAuthCorp/pysap
-[submodule "rans_static"]
-	path = rans_static
-	url = https://github.com/jkbonfield/rans_static
 [submodule "zlib-ng"]
 	path = zlib-ng
 	url = https://github.com/Dead2/zlib-ng
