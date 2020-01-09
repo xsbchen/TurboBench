@@ -15,10 +15,10 @@ branches:
     - master 
 
 script:
-  - make
-  - ./turbobench -eCI -v0 turbobench  
-  - find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -exec cat {} \; > csrc
-  - ./turbobench -eCI -v0 csrc  
+  - make EC=1
+#  - ./turbobench -eCI -v0 turbobench  
+#  - find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -exec cat {} \; > csrc
+#  - ./turbobench -eCI -v0 csrc  
 
 matrix:
   include:
@@ -29,23 +29,23 @@ matrix:
         - make
         - ./turbobench -eCI2 -v0 turbobench  
         - find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -exec cat {} \; > csrc
-        - ./turbobench -eCI2 -v0 csrc  
+#        - ./turbobench -eCI2 -v0 csrc  
 
     - name: amd64-linux-clang
       arch: amd64 
       compiler: clang
       script:
         - make
-        - ./turbobench -eCI2 -v0 turbobench  
-        - find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -exec cat {} \; > csrc
-        - ./turbobench -eCI2 -v0 csrc  
+#        - ./turbobench -eCI2 -v0 turbobench  
+#        - find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -exec cat {} \; > csrc
+#        - ./turbobench -eCI2 -v0 csrc  
 
     - name: amd64-windows-mingw64
       os: windows
       arch: amd64 
       script: 
         - mingw32-make
-        - ./turbobench -eCI2 -v0 turbobench.exe    
+#        - ./turbobench -eCI2 -v0 turbobench.exe    
 
     - name: amd64-MacOs-xcode
       os: osx
