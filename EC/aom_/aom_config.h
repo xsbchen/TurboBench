@@ -78,3 +78,4 @@
 #define HAVE_WXWIDGETS 0
 #define INLINE inline
 #endif  /* AOM_CONFIG_H_ */
+
