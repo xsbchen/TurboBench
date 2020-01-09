@@ -101,18 +101,15 @@ Compressors with versions 16.08.2016 <br>
 
   + individual codec test (output to screen & file.tbb)<br />
 
-
         ./turbobench -elzturbo,19,29,39/brotli,6/zlib,6 file
 
   + retest or test other compressors and merge the results to file.tbb<br />
-
 
         ./turbobench -eFAST/bzip2 file
 
 ##### - Print + Plot
 
    + Print result file + "transfer+decompression speedup" plot to file.html for browsing
-
 
         ./turbobench -p2 -S2 file.tbb
 
@@ -125,16 +122,23 @@ Compressors with versions 16.08.2016 <br>
 
 ###### Turbobench mini: compile (only popular codecs)
 
-		make NCOMP2=1 NECODER=1 NSIMD=1
+		make NCODEC2=1
+
+###### Turbobench incl. Entropy Coder codecs
+
+        make EC=1
 
 ### Environment:
+
 ###### OS/Compiler (32 + 64 bits):
-- Linux: GNU GCC (>=4.6) 
-- clang (>=3.2)
-- intel c/c++ (>=18.0)
-- Windows: [MinGW-w64](https://sourceforge.net/projects/mingw-w64/)
-- Windows: Visual Studio >=2015
-- ARM 64 bits/ gcc 
+- Windows: [MinGW-w64](https://sourceforge.net/projects/mingw-w64/) makefile 
+- Linux amd/intel: GNU GCC (>=4.6)
+- Linux amd/intel: Clang (>=3.2)
+- Linux arm: aarch64
+- MaxOS: XCode (>=9)
+- PowerPC ppc64le
+- IBM Z series s390x
+
 
 ### Plugins:
 #### Compressor Lz77,Rolz,Bwt,zpaq:
@@ -246,5 +250,5 @@ Compressors with versions 16.08.2016 <br>
  - [bwt:libdivsufsort](https://github.com/y-256/libdivsufsort)
  - [st: bsc schindler transform](https://github.com/IlyaGrebnov/libbsc)
 
-Last update: 25 Dec 2019
+Last update: 09 Jan 2020
 
