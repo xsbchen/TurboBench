@@ -55,3 +55,4 @@ Uint ModelInit    (rc_model *, Uint, Uint *, Uint *, Uint, Uint, uc);
 
 
 #endif
+
