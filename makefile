@@ -53,16 +53,15 @@ ZOPFLI=1
 #ZPAQ=1
 endif
 
-ifeq ($(NEC),1) # Encoding Entropy coders / RLE 
-else
+ifeq ($(EC),1) # Encoding Entropy coders / RLE 
 #AOM=1
 FASTAC=1
 FASTHF=1
-#FASTARI=1
+FASTARI=1
 FPAQ0P=1
 FPAQC=1
-#FREQTAB=1
-#FPC=1
+FREQTAB=1
+FPC=1
 FQZ0=1
 RANS_S=1
 SUBOTIN=1
@@ -433,34 +432,34 @@ endif
 # or copy aom_/aom_config.h to aom
 ifeq ($(AOM),1)
 CXXFLAGS+=-D_AOM
-OB+=aom_/aom.o aom/aom_dsp/entenc.o aom/aom_dsp/entdec.o aom/aom_dsp/entcode.o 
+OB+=EC/aom_/aom.o EC/aom/aom_dsp/entenc.o EC/aom/aom_dsp/entdec.o EC/aom/aom_dsp/entcode.o 
 #OB+=daala_/daala.o 
 endif
 
 # First download or clone daala (https://github.com/xiph/daala) into TurboBench directory
 ifeq ($(DAALA),1)
 CXXFLAGS+=-D_DAALA
-OB+=daala_/daala.o 
+OB+=EC/daala_/daala.o 
 endif
 
 ifeq ($(FASTAC),1)
 CXXFLAGS+=-D_FASTAC
-OB+=fastac/arithmetic_codec.o
+OB+=EC/fastac/arithmetic_codec.o
 endif
 
 ifeq ($(FASTHF),1) 
 CXXFLAGS+=-D_FASTHF
-OB+=fasthf/binary_codec.o
+OB+=EC/fasthf/binary_codec.o
 endif
 
 ifeq ($(FPAQ0P),1) 
 CXXFLAGS+=-D_FPAQ0P
-OB+=fpaq0p/fpaq0p_sh.o 
+OB+=EC/fpaq0p/fpaq0p_sh.o 
 endif
 
 ifeq ($(FPC), 1)
 CXXFLAGS+=-D_FPC
-OB+=FPC/fpc.o
+OB+=EC/FPC/fpc.o
 endif
 
 ifeq ($(FREQTAB),1)
@@ -472,30 +471,30 @@ FREQOPT=-march=skylake -fwhole-program -fpermissive -fstrict-aliasing -fomit-fra
 -fno-exceptions -fno-rtti -fno-operator-names \
 -flto -ffat-lto-objects -Wl,-flto -fuse-linker-plugin -Wl,-O -Wl,--sort-common -Wl,--as-needed -ffunction-sections
 
-freqtab/src/c_mem.o: freqtab/src/c_mem.cpp
+EC/freqtab/src/c_mem.o: EC/freqtab/src/c_mem.cpp
 	$(CXX) $(FREQOPT) -O3 -std=c++11 $< -c -o $@ 
 
-freqtab/src/model.o: freqtab/src/model.cpp
+EC/freqtab/src/model.o: EC/freqtab/src/model.cpp
 	$(CXX) $(FREQOPT) -O3 -march=skylake -std=c++11 $< -c -o $@ 
 endif
 
-OB+=freqtab/src/c_mem.o freqtab/src/coder/model.o
+OB+=EC/freqtab/src/c_mem.o EC/freqtab/src/coder/model.o
 endif
 
 
 ifeq ($(RANS_S),1) 
 CXXFLAGS+=-D_RANS_S
-rans_static/r32x16b_avx2.o: rans_static/r32x16b_avx2.c
+EC/rans_static/r32x16b_avx2.o: EC/rans_static/r32x16b_avx2.c
 	$(CC) -O3 -mavx2 $(MARCH) $< -c -o $@ 
-OB+=rans_static/rANS_static4x8.o rans_static/rANS_static4x16pr.o rans_static/rANS_static.o rans_static/arith_static.o
+OB+=EC/rans_static/rANS_static4x8.o EC/rans_static/rANS_static4x16pr.o EC/rans_static/rANS_static.o EC/rans_static/arith_static.o
 ifeq ($(AVX2),1)
-OB+=rans_static/r32x16b_avx2.o
+OB+=EC/rans_static/r32x16b_avx2.o
 endif
 endif
 
 ifeq ($(SUBOTIN),1) 
 CXXFLAGS+=-D_SUBOTIN
-OB+=subotin_/subotin.o 
+OB+=EC/subotin_/subotin.o 
 endif
 
 ifeq ($(TURBORC),1) 
@@ -505,7 +504,7 @@ endif
 
 ifeq ($(VECRC),1) 
 CXXFLAGS+=-D_VECRC
-OB+=vecrc/vector_rc.o
+OB+=EC/vecrc/vector_rc.o
 endif
 
 #OB+=FastARI/FastAri.o 
