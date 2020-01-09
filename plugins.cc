@@ -283,6 +283,10 @@ enum {
 #define _FASTHF 0
 #endif
  P_FASTHF,
+#ifndef _FREQTAB
+#define _FREQTAB 0
+#endif
+ P_FREQTAB,
 #ifndef _FSC
 #define _FSC 0
 #endif
@@ -843,6 +847,10 @@ size_t lz4ultra_decompress_inmem(const unsigned char *pFileData, unsigned char *
 #include "fpaqc/fpaqc.h"
   #endif
 
+  #if _FREQTAB
+#include "freqtab/freqtab.h"
+  #endif
+
   #if _MMRC
 #include "fpaq0f2/fpaq0f2.h"
 #include "fpaq0p/fpaq0p_mm.h"
@@ -990,6 +998,7 @@ struct plugs plugs[] = {
   { P_AOM,       "AOM",         _AOM,       "AV1 Entropy coder",       ""},
   { P_DAALA,     "Daala",       _DAALA,     "DAALA Entropy Coder",     ""},
   { P_FPC,       "fpc",         _FPC,       "Fast Prefix Coder",       "0,8,9,10,11,12,16,32,48,63" },
+  { P_FREQTAB,   "freqtab",     _FREQTAB,   "FreqTable v2.Eugene shelwien", "" },
   { P_FSC,       "fsc",         _FSC,       "Finite State Coder",      "", E_ANS },
   { P_FSE,       "fse",         _ZSTD,      "Finite State Entropy",    "", E_ANS },
   { P_FSEH,      "fsehuf",      _ZSTD,      "Finite State Entropy",    "", E_HUF },
@@ -1806,6 +1815,10 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
     case P_FQZ0:  { unsigned int outlen; compress_block(in, inlen, out, &outlen); return outlen; }
       #endif
 
+      #if _FREQTAB
+    case P_FREQTAB: return freqtabenc(in, inlen, out, outsize);
+      #endif
+
       #if _FSC
     case P_FSC:     { size_t outlen = 0; uint8_t *op = NULL; int ok = FSCEncode(in, inlen, &op, &outlen, 12, CODING_METHOD_DEFAULT); if(ok) { memcpy(out, op, outlen); free(op); } return outlen; }
       #endif
@@ -2455,6 +2468,10 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
 
       #if _FPAQC
     case P_FPAQC:   absd(in, outlen, out); break;
+      #endif
+
+      #if _FREQTAB
+    case P_FREQTAB: return freqtabdec(in, inlen, out, outlen);
       #endif
 
       #if _MMRC
