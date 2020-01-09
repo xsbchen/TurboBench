@@ -144,3 +144,4 @@ inline uint16_t SIMPLE_MODEL<NSYM>::decodeSymbol(RangeCoder *rc) {
 
     return s->Symbol;
 }
+
