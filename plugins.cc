@@ -387,7 +387,7 @@ static ZSTD_DDict* createDDict_orDie(const char* dictFileName) {
   #endif
 
   #if _AOM
-#include "aom_/aom.h"
+#include "EC/aom_/aom.h"
   #endif
 
   #if _C_BLOSC2
@@ -459,7 +459,7 @@ static size_t cscwrite(MemISeqOutStream *so, const void *out, size_t outlen) {
   #endif
 
   #if _DAALA
-#include "daala_/daala.h"
+#include "EC/daala_/daala.h"
   #endif
 
   #if _DOBOZ
@@ -815,15 +815,15 @@ size_t lz4ultra_decompress_inmem(const unsigned char *pFileData, unsigned char *
   #endif
   //------------------------------------ Entropy Coder ------------------------------
   #if _FASTAC
-#include "fastac/arithmetic_codec.h"
+#include "EC/fastac/arithmetic_codec.h"
   #endif
 
   #if _FASTHF
-#include "fasthf/binary_codec.h"
+#include "EC/fasthf/binary_codec.h"
   #endif
 
   #if _FPC
-#include "FPC/fpc.h"
+#include "EC/FPC/fpc.h"
   #endif
 
   #if _ZSTD
@@ -832,33 +832,33 @@ size_t lz4ultra_decompress_inmem(const unsigned char *pFileData, unsigned char *
   #endif
 
   #if _FQZ
-#include "fqz0/f_o0.h"
+#include "EC/fqz0/f_o0.h"
   #endif
 
   #if _JAC
-#include "rans_static_/arith_static.h"
+#include "EC/rans_static_/arith_static.h"
   #endif
 
   #if _RANS_S
-#include "rans_static/rANS_static.h"
+#include "EC/rans_static/rANS_static.h"
   #endif
 
   #if _FPAQC
-#include "fpaqc/fpaqc.h"
+#include "EC/fpaqc/fpaqc.h"
   #endif
 
   #if _FREQTAB
-#include "freqtab/freqtab.h"
+#include "EC/freqtab/freqtab.h"
   #endif
 
   #if _MMRC
-#include "fpaq0f2/fpaq0f2.h"
-#include "fpaq0p/fpaq0p_mm.h"
-#include "o0zp/o0zp.h"
+#include "EC/fpaq0f2/fpaq0f2.h"
+#include "EC/fpaq0p/fpaq0p_mm.h"
+#include "EC/o0zp/o0zp.h"
   #endif
 
   #if _NANS
-#include "ans_nania/narans.h"
+#include "EC/ans_nania/narans.h"
   #endif
 
   #if _MARLIN
@@ -874,20 +874,20 @@ const MarlinDictionary * Marlin_estimate_best_dictionary(const MarlinDictionary 
   #endif
 
   #if _POLHF
-#include "polar/polar.h"
+#include "EC/polar/polar.h"
   #endif
 
   #if _PPMDEC
-#include "ppmdec/ppmdec.h"
+#include "EC/ppmdec/ppmdec.h"
   #endif
 
   #if _SUBOTIN
-#include "subotin_/subotin.h"
+#include "EC/subotin_/subotin.h"
   #endif
 
   #if _SHRC
-#include "fpaq0p/fpaq0p_sh.h"
-#include "vecrc/vector_rc.h"
+#include "EC/fpaq0p/fpaq0p_sh.h"
+#include "EC/vecrc/vector_rc.h"
   #endif
 
   #if _MYCODEC
@@ -899,20 +899,20 @@ extern "C" {
   #endif
 
   #if _FASTARI
-#include "FastARI/FastAri.h"
+#include "EC/FastARI/FastAri.h"
   #endif
 
   #if _FSC
-#include "fsc/fsc.h"
+#include "EC/fsc/fsc.h"
   #endif
 
   #if _NIBRANS
 #define NIBRANS_STATIC
-#include "nibrans/nibrans.h"
+#include "EC/nibrans/nibrans.h"
   #endif
 
   #if _RANS_S
-#include "rans_static/rANS_static.h"
+#include "EC/rans_static/rANS_static.h"
 unsigned char *rans_compress_to_32x16(unsigned char *in,  unsigned int in_size,
                      unsigned char *out, unsigned int *out_size,
                      int order);
