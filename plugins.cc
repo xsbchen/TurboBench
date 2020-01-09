@@ -237,10 +237,10 @@ enum {
  P_ZLIB,
  P_ZRLE,
  P_ZLIBH,
-#ifndef _ZLIBNG
-#define _ZLIBNG 0
+#ifndef _ZLIB_NG
+#define _ZLIB_NG 0
 #endif
- P_ZLIBNG,
+ P_ZLIB_NG,
 #ifndef _ZLING
 #define _ZLING 0
 #endif
@@ -656,17 +656,18 @@ class Out: public libzpaq::Writer {
 #include "yappy/yappy.hpp"
   #endif
 
-  #if _ZLIB || C_LIBSLZ
+  #if _ZLIB || _LIBSLZ
      #if _ZLIBLIB
 #include <zlib.h>
-     #elif defined(ZLIB_NG)          // zlib-ng.a compatible mode : "./configure --zlib-compat" (see zlib-ng/INSTALL)
-#include "zlib/zlib.h"
+//     #elif defined(ZLIB_NG)          // zlib-ng.a compatible mode : "./configure --zlib-compat" (see zlib-ng/INSTALL)
+//#include "zlib/zlib.h"
      #elif defined(ZLIB_INTEL)
 #include "zlib_intel/zlib.h"
      #else
 #include "zlib/zlib.h"
      #endif
   #endif
+
 
   #if _ZLING
 #include "libzling/src/libzling.h"
@@ -731,13 +732,12 @@ struct snappy_env env;
 #include "smallz4/smallz4cat.c"
   #endif
 
-  #if _ZLIBNG
-//#include "zlib-ng/zlib-ng.h"     // compile conflict with zlib.h
-#include "zlib-ng_/zconf-ng.h"
-ZEXTERN const char * ZEXPORT zlibng_version(void);
-ZEXTERN int ZEXPORT zng_compress2(unsigned char *dest, size_t *destLen, const unsigned char *source,
-                              size_t sourceLen, int level);
-ZEXTERN int ZEXPORT zng_uncompress(unsigned char *dest, size_t *destLen, const unsigned char *source, size_t sourceLen);
+  #if _ZLIB_NG
+//#include "zlib-ng/zlib-ng.h"     
+#include "zlib-ng/zconf-ng.h"
+ZEXTERN ZEXPORT const char *zlibng_version(void);
+ZEXTERN ZEXPORT int zng_compress2(unsigned char *dest, size_t *destLen, const unsigned char *source, size_t sourceLen, int level);
+ZEXTERN ZEXPORT int zng_uncompress(unsigned char *dest, size_t *destLen, const unsigned char *source, size_t sourceLen);
   #endif
 
   #if _ZOPFLI
@@ -980,7 +980,7 @@ struct plugs plugs[] = {
   { P_YALZ77,    "yalz77",      _YALZ77,    "Yalz77",                  "1,6,12" },
   { P_YAPPY,     "yappy",       _YAPPY,     "Yappy",                   "" },//crash windows
   { P_ZLIB,      "zlib",        _ZLIB,      "zlib",                    "1,2,3,4,5,6,7,8,9" },
-  { P_ZLIBNG,    "zlib_ng",     _ZLIBNG,    "zlib-ng",                 "1,2,3,4,5,6,7,8,9" },
+  { P_ZLIB_NG,   "zlib_ng",     _ZLIB_NG,   "zlib-ng",                 "1,2,3,4,5,6,7,8,9" },
   { P_ZLING,     "zling",       _ZLING,     "Libzling",                "0,1,2,3,4" },
   { P_ZOPFLI,    "zopfli",      _ZOPFLI,    "Zopfli",                  ""},
   { P_ZSTD,      "zstd",        _ZSTD,      "ZSTD",                    "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-20,-21,-22/d#" },
@@ -1630,8 +1630,8 @@ int codcomp(unsigned char *in, int inlen, unsigned char *out, int outsize, int c
     case P_ZLIB:     { uLongf outlen = outsize; int rc = compress2(out, &outlen, in, inlen, lev); if(rc != Z_OK) printf("zlib compress2 rc=%d\n", rc);  return outlen; }
       #endif
 
-      #if _ZLIBNG
-    case P_ZLIBNG:   { uLongf outlen = outsize; int rc = zng_compress2(out, &outlen, in, inlen, lev); if(rc) printf("zlib compress2 rc=%d\n", rc);  return outlen; }
+      #if _ZLIB_NG
+    case P_ZLIB_NG:   { uLongf outlen = outsize; int rc = zng_compress2(out, &outlen, in, inlen, lev); if(rc) printf("zlib compress2 rc=%d\n", rc);  return outlen; }
       #endif
 
       #if _ZLING
@@ -2286,15 +2286,15 @@ int coddecomp(unsigned char *in, int inlen, unsigned char *out, int outlen, int 
 
       #if _ZLIB
     //case P_IGZIP: case P_LIBDEFLATE:
-      #if _ZLIBNG == 0
+        #if _ZLIB_NG == 0
     case P_ZOPFLI:
-      #endif
+        #endif
     case P_ZLIB: { uLongf outsize = outlen; int rc = uncompress(out, &outsize, in, inlen); } break;
       #endif
 
-      #if _ZLIBNG
+      #if _ZLIB_NG
     case P_ZOPFLI:
-    case P_ZLIBNG: { uLongf outsize = outlen; int rc = zng_uncompress(out, &outsize, in, inlen); } break;
+    case P_ZLIB_NG: { uLongf outsize = outlen; int rc = zng_uncompress(out, &outsize, in, inlen); } break;
       #endif
 
       #if _ZSTD
@@ -2596,8 +2596,8 @@ char *codver(int codec, char *v, char *s) {
     case P_ZLIB:
       sprintf(s,zlib_version); break;
       #endif
-      #if _ZLIBNG
-    case P_ZLIBNG:
+      #if _ZLIB_NG
+    case P_ZLIB_NG:
       sprintf(s,zlibng_version()); break;
       #endif
     default:        strcpy(s,v);
