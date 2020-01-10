@@ -1,21 +1,12 @@
-[submodule "CSC"]
-	path = CSC
-	url = https://github.com/fusiyuan2010/CSC.git
 [submodule "FastLZ"]
 	path = FastLZ
 	url = https://github.com/ariya/FastLZ.git
 [submodule "bzip2"]
 	path = bzip2
 	url = https://github.com/asimonov-im/bzip2.git
-[submodule "gipfeli"]
-	path = gipfeli
-	url = https://github.com/google/gipfeli.git
 [submodule "libbsc"]
 	path = libbsc
 	url = https://github.com/IlyaGrebnov/libbsc.git
-[submodule "libzling"]
-	path = libzling
-	url = https://github.com/richox/libzling.git
 [submodule "lzham_codec_devel"]
 	path = lzham_codec_devel
 	url = https://github.com/richgel999/lzham_codec_devel.git
