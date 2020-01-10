@@ -18,7 +18,7 @@ endif
 
 ifeq ($(NCODEC2),1) # Notable codecs
 else
-CSC=1
+#CSC=1
 #BRIEFLZ=1
 BZIP2=1
 #CHAMELEON=1
