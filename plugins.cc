@@ -737,8 +737,8 @@ struct snappy_env env;
   #endif
 
   #if _ZLIB_NG
-//#include "zlib-ng/zlib-ng.h"     
 #include "zlib-ng/zconf-ng.h"
+//#include "zlib-ng/zlib-ng.h"     
 ZEXTERN ZEXPORT const char *zlibng_version(void);
 ZEXTERN ZEXPORT int zng_compress2(unsigned char *dest, size_t *destLen, const unsigned char *source, size_t sourceLen, int level);
 ZEXTERN ZEXPORT int zng_uncompress(unsigned char *dest, size_t *destLen, const unsigned char *source, size_t sourceLen);
